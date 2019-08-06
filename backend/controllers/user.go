@@ -1,24 +1,11 @@
-package main
+package controllers
 
 import (
 	"bytes"
-	"fmt"
-	//"github.com/CloudyKit/jet"
 	"io"
+	"net/http"
 	"regexp"
 	"html/template"
-	//"fmt"
-	"github.com/go-chi/chi"
-	//"io"
-	"net/http"
-
-	//"bytes"
-	//"net/http"
-	//"io"
-	//"github.com/CloudyKit/jet"
-	//"time"
-	//"github.com/iizotop/esc/tradinghero.org/profile/jwt"
-
 )
 
 type (
@@ -42,30 +29,12 @@ type (
 	}
 )
 
-func main() {
-
-	mux := chi.NewRouter()
-
-	mux.Post("/customers", Signup)
-	mux.Get("/customers", Signup)
-	mux.Get("/search", Search)
-
-
-	fileHandle := http.FileServer(http.Dir(".")).ServeHTTP
-
-	mux.Get("/css/*", fileHandle)
-	mux.Get("/img/*", fileHandle)
-	err := http.ListenAndServe(":3004", mux)
-	fmt.Println(err)
-
-}
-
 func Signup(w http.ResponseWriter, r *http.Request) {
 	signupUser := SignupUser{}
 
 	if r.Method == "GET" {
 
-		tmpl, err := template.ParseFiles("index.html")
+		tmpl, err := template.ParseFiles("templates/index.html")
 		if err != nil {
 			io.WriteString(w, err.Error())
 			return
@@ -128,7 +97,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 		if !name || !lname || !phone || !info {
 
-			tmpl, err := template.ParseFiles("index.html")
+			tmpl, err := template.ParseFiles("templates/index.html")
 			if err != nil {
 				io.WriteString(w, err.Error())
 				return
@@ -146,7 +115,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 		} else {
 
-			tmpl, err := template.ParseFiles("success.html")
+			tmpl, err := template.ParseFiles("templates/success.html")
 			if err != nil {
 				io.WriteString(w, err.Error())
 				return
@@ -172,7 +141,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 
-		tmpl, err := template.ParseFiles("search.html")
+		tmpl, err := template.ParseFiles("templates/search.html")
 		if err != nil {
 			io.WriteString(w, err.Error())
 			return
