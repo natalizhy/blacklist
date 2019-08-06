@@ -1,0 +1,143 @@
+html, body {
+    padding: 0;
+    margin: 0;
+    background-color: #eff3f6;
+    height: 100%;
+}
+
+html {
+    display: table;
+    margin: auto;
+}
+
+body {
+    font-family: Source Sans Pro, sans-serif;
+    background-color: #eff3f6;
+    font-size: 16px;
+    color: rgba(0, 0, 0, .7);
+    vertical-align: middle;
+}
+
+select {
+    cursor: pointer;
+}
+
+label textarea {
+    width: 285px;
+    height: 140px;
+}
+
+label input, label textarea, label select {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    height: 39px;
+    border-radius: 4px;
+    outline: none;
+    margin-top: 4px;
+    padding: .59375rem .9375rem;
+    border: 1px solid #dfe3e9;
+    background-color: #fff;
+    font-size: .875rem;
+}
+
+label input:focus {
+    border: 1px solid rgb(75, 169, 247);
+    border-radius: 4px;
+}
+
+input:focus::-moz-placeholder {
+    color: rgb(223, 227, 233);
+}
+
+input:focus::-webkit-input-placeholder {
+    color: rgb(223, 227, 233);
+
+}
+
+p {
+    font-family: Source Sans Pro, sans-serif;
+    color: red;
+    margin-block-start: 0.5em;
+    margin-block-end: 0.5em;
+}
+
+.body {
+    margin: 0 auto;
+    padding: 1em 0;
+    display: flex;
+    justify-content: center;
+}
+
+/*photo*/
+
+.dz-icon {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.photo {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    color: #7f8fa4;
+    border: 1px solid #e6eaee;
+    border-radius: 4px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.img {
+    width: 200px;
+    height: 300px;
+}
+
+
+.left-element {
+    padding-right: 50px;
+}
+
+.u-text-center {
+    text-align: center !important;
+}
+
+.update {
+    opacity: 0;
+}
+
+.update:hover {
+    opacity: 1;
+}
+
+.img-bg {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+/*button*/
+#bt {
+    font-family: Source Sans Pro, sans-serif;
+    position: relative;
+    background-color: #2196F3;
+    max-width: 100%;
+    margin: 0;
+    padding: .5rem 1.25rem;
+    transition: all .15s ease-in-out;
+    border: 1px solid #1a91eb;
+    border-radius: 4px;
+    color: #fff;
+    font-size: .9rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    overflow: hidden;
+    vertical-align: middle;
+    -webkit-appearance: none;
+    width: 100%;
+}
