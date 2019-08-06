@@ -15,12 +15,14 @@ type (
 		LastName  string
 		FirstName string
 		Info      string
+		Photo     string
 
 		PhoneError     string
 		CountryError   string
 		LastNameError  string
 		FirstNameError string
 		InfoError      string
+		PhotoError     string
 	}
 	SearchUser struct {
 		Search string
@@ -57,11 +59,13 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		signupUser.Country = r.FormValue("country")
 		signupUser.LastName = r.FormValue("lname")
 		signupUser.FirstName = r.FormValue("name")
+		signupUser.Info = r.FormValue("info")
+		signupUser.Photo = r.FormValue("photo")
 
 		name, _ := regexp.MatchString("^[A-Za-zА-Яа-я]{4,}$", signupUser.FirstName)
 		phone, _ := regexp.MatchString("^[0-9+ ()]{10,}$", signupUser.Phone)
 		lname, _ := regexp.MatchString("^[A-Za-zА-Яа-я]{4,}$", signupUser.LastName)
-		info, _ := regexp.MatchString("^[A-Za-zА-Яа-я]{4,}$", signupUser.Info)
+		info, _ := regexp.MatchString("[^`]{4,}$", signupUser.Info)
 
 		if signupUser.FirstName == "" {
 			signupUser.FirstNameError = "Empty first name"
@@ -84,15 +88,15 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		} else if phone {
 			signupUser.PhoneError = ""
 		}
-		if signupUser.Country == "" {
-			signupUser.CountryError = "Empty country"
-		}
 		if signupUser.Info == "" {
-			signupUser.InfoError = "Empty country"
+			signupUser.InfoError = "Empty information"
 		} else if !info {
 			signupUser.InfoError = "Use only Russian or English."
 		} else if info {
 			signupUser.InfoError = ""
+		}
+		if signupUser.Photo == "" {
+			signupUser.PhotoError = "Empty Photo"
 		}
 
 		if !name || !lname || !phone || !info {

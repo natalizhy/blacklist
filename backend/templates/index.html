@@ -5,23 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title></title>
-    <link rel="stylesheet" href="/css/styles.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/styles.css" type="text/css">
 
 </head>
 <body>
-<form action="/customers" method="GET">
+<form action="/customers" method="POST">
     <div class="body">
         <div class="left-element">
             <label for="image" class="img u-mb-medium photo img-bg">
-                <div class="dz-message u-text-center update">
-                    <input type="file" name="image" id="image" accept="image/x-png,image/gif,image/jpeg,image/jpg,image/png"  style="display:none;"/>
+                <div class="dz-message u-text-center">
+                    <input type="file" name="photo" id="image" accept="image/x-png,image/gif,image/jpeg,image/jpg,image/png" autocomplete="on" style="display:none;" value="{{.Photo}}"/>
 
-                    <div>
+                    <div class="update">
                         <img class="img dz-icon" style="height: 40px;"
-                             src="/img/cloud-storage-download.svg" alt="Face"/>
+                             src="/assets/img/cloud-storage-download.svg" alt="Face"/>
 
                         <span>Загрузить фото</span>
                     </div>
+                    {{if .PhotoError}}
+                        <p>{{.PhotoError}}</p>
+                    {{end}}
                 </div>
             </label>
         </div>
@@ -41,8 +44,8 @@
             </label>
             <br>
             <label>
-                Город:<br><select name="country" value="{{.Country}}">
-                    <option selected>Выберите город</option>
+                Город:<br><select name="country" value="{{.Country}}" required="required">
+                    <option value="" selected>Выберите город</option>
                     <option>Киев</option>
                     <option>Харков</option>
                     <option>Одеса</option>
@@ -60,7 +63,7 @@
             </label>
             <br>
             <label>
-                Информация:<br><textarea style="width: 285px; height: 140px;" name="text" placeholder="текст" value="{{.Info}}"></textarea>
+                Информация:<br><textarea style="width: 285px; height: 140px;" name="info" autocomplete="on" placeholder="текст">{{.Info}}</textarea>
                 {{if .InfoError}}
                 <p>{{.InfoError}}</p>
                 {{end}}
@@ -77,6 +80,7 @@
             var fr = new FileReader();
 
             fr.addEventListener("load", function () {
+                document.querySelector(".update").classList.add('hoverable')
                 document.querySelector(".img-bg").style.backgroundImage = `url("${fr.result}")`;
             }, false);
 
