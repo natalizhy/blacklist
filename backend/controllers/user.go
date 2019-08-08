@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"bytes"
+	"github.com/natalizhy/blacklist/backend/models"
+	"github.com/natalizhy/blacklist/backend/repositories"
+	"html/template"
 	"io"
 	"net/http"
 	"regexp"
-	"html/template"
 )
 
 type (
@@ -163,3 +165,12 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func AddNewUser(w http.ResponseWriter, r *http.Request) {
+
+	user := models.Users{10, models.Users{}.FirstName, "zhy", "", "", ""}
+
+	repositories.DBUser(user)
+}
+
+
