@@ -139,8 +139,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//w.Write([]byte("hello"))
-
 }
 func Search(w http.ResponseWriter, r *http.Request) {
 	searchUser := SearchUser{}

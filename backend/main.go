@@ -22,7 +22,7 @@ func main() {
 	mux.Post("/customers", controllers.Signup)
 	mux.Get("/customers", controllers.Signup)
 	mux.Get("/search", controllers.Search)
-	mux.Post("/customers", controllers.AddNewUser)
+	mux.Post("/", controllers.AddNewUser)
 
 	fileHandle := http.FileServer(http.Dir(".")).ServeHTTP
 
