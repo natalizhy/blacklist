@@ -8,7 +8,8 @@ import (
 	//"github.com/jmoiron/sqlx"
 )
 
-func DBUser(user models.Users) {
+func DBUser(user models.User) {
+
 	res, err := DB.Exec("INSERT INTO `customers` (`first_name`, `last_name`, `country`, `phone`, `info`) VALUES (?, ?, ?, ?, ?)", user.FirstName, user.LastName, user.Country, user.Phone, user.Info)
 
 	if err != nil {
@@ -20,23 +21,6 @@ func DBUser(user models.Users) {
 	}
 
 	fmt.Println("Created user with id:", id)
-
-	//rows, err := DB.Exec("select * from users")
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer DB.Close()
-
-		p := models.Users{}
-		err = DB.Get(&p.ID, p.FirstName, &p.LastName, &p.Country, &p.Phone, &p.Info)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-	fmt.Println("users")
-	fmt.Println(p)
-	fmt.Println(&p.ID, p.FirstName, &p.LastName, &p.Country, &p.Phone, &p.Info)
-
 }
 
 //func DBUpdate() {

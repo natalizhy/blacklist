@@ -168,9 +168,17 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 func AddNewUser(w http.ResponseWriter, r *http.Request) {
 
-	user := models.Users{10, models.Users{}.FirstName, "zhy", "", "", ""}
+		r.ParseForm()
 
-	repositories.DBUser(user)
+		var (
+			name= r.FormValue("name")
+			lname= r.FormValue("lname")
+			country= r.FormValue("country")
+			phone= r.FormValue("phone")
+			info= r.FormValue("info")
+		)
+
+		user := models.User{0, name, lname, country, phone, info}
+
+		repositories.DBUser(user)
 }
-
-
