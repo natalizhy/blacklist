@@ -7,4 +7,5 @@ type User struct {
 	Country   string `db:"country"`
 	Phone     string `db:"phone"`
 	Info      string `db:"info"`
+	Photo     string `db:"photo"`
 }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title></title>
+    <link href="/assets/css/styles.css" rel="stylesheet" type="text/css">
+<style>
+    div {
+        width: 350px;
+        height: 60px;
+        border: 1.5px solid #000000;
+        border-radius: 10px;
+        list-style-type: none;
+        padding-top: 10px;
+        padding-left: 15px;
+        padding: 1em 0;
+        display: flex;
+        margin-bottom: 20px;
+        padding-left: 15px;
+    }
+    li {
+        padding-left: 20px;
+    }
+    div:hover {
+        border: 1.5px solid rgb(168, 168, 168);
+    }
+    .image {
+        width: 60px;
+        background-color: black;
+    }
+    ul {
+        padding-inline-start: 0;
+    }
+    a {
+        text-decoration: none;
+    }
+</style>
+</head>
+<body>
+
+<a href="/addNewUser" style="float: right; ">Добавить юзера</a>
+<a href="/searchUser" style="float: left; ">Найти юзера</a>
+
+<ul>
+    {{range .}}
+        <div>
+            <label class="image">{{.Photo}}</label>
+            <li><a href="/customers/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.Country}}</li>
+        </div>
+    {{end}}
+</ul>
+
+</body>
+</html>

@@ -5,23 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>search</title>
-    <link rel="stylesheet" href="/css/styles.css" type="text/css">
+    <link rel="stylesheet" href="assets/css/styles.css" type="text/css">
 </head>
 <body>
 
-<div action="/search" method="POST">
+<form action="/searchUser" method="POST">
     <div class="body">
         <div class="left-element">
             <label>
-                <input type="text" name="search" placeholder="Поиск" value="{{.Search}}">
+                <input type="text" name="search" placeholder="Поиск">
             </label>
         </div>
 
-            <label>
+            <label style="padding: 5px;">
                 <input id="bt" type="submit" value="Поиск"/>
             </label>
     </div>
-</div>
+</form>
 
 </body>
 </html>

@@ -18,11 +18,21 @@ func main() {
 	repositories.InitDB()
 	mux := chi.NewRouter()
 
-	mux.Get("/", controllers.IndexPage)
-	mux.Post("/customers", controllers.Signup)
-	mux.Get("/customers", controllers.Signup)
-	mux.Get("/search", controllers.Search)
-	mux.Post("/", controllers.AddNewUser)
+	mux.Get("/", controllers.GetUsers)
+	//mux.Post("/customers/{userID}", controllers.Redirect)
+	mux.Get("/customers/{userID}", controllers.GetUser) // просмотр юзера
+	mux.Post("/customers/{userID}", controllers.GetUser)
+	mux.Get("/customers/{userID}/edit", controllers.GetUpdateUser) // редактирование
+	mux.Post("/customers/{userID}/edit", controllers.UpdateUser)
+
+	mux.Get("/addNewUser", controllers.GetNewUser) //
+	mux.Post("/addNewUser", controllers.AddUser) // добавление нового юзера
+
+	mux.Get("/searchUser", controllers.Search) //
+	mux.Post("/searchUser", controllers.Search) // поиск юзера
+
+	//mux.Post("/customers", controllers.AddNewUser)
+	//mux.Post("/", controllers.AddNewUser)
 
 	fileHandle := http.FileServer(http.Dir(".")).ServeHTTP
 

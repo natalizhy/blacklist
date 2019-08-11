@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title></title>
+    <link rel="stylesheet" href="/assets/css/styles.css" type="text/css">
+    <style>
+        ul {
+            padding-top: 20px;
+            width: 250px;
+            height: 270px;
+            border: 1.5px solid #000000;
+            border-radius: 10px;
+            list-style-type: none;
+            position:relative;
+
+        }
+        li {
+            padding-top: 10px;
+        }
+        a {
+            padding-bottom: 15px;
+            position:absolute;
+            text-decoration: none;
+            bottom:0;
+        }
+
+    </style>
+</head>
+<body>
+
+{{if .IsEdit}}
+    {{if .IsSaveOk}}  <h1 style="color: green">Юзер обновлен успешно</h1> {{end}}
+    <form action="/{{if .User.ID}}customers/{{.User.ID}}/edit{{else}}addNewUser{{end}}" method="POST">
+        <div class="body">
+            <div class="left-element">
+                <label for="image" class="img u-mb-medium photo img-bg">
+                    <div class="dz-message u-text-center">
+                        <input type="file" name="photo" id="image"
+                               accept="image/x-png,image/gif,image/jpeg,image/jpg,image/png" autocomplete="on"
+                               style="display:none;" value="{{.User.Photo}}"/>
+
+                        <div class="update">
+                            <img class="img dz-icon" style="height: 40px;"
+                                 src="/assets/img/cloud-storage-download.svg" alt="Face"/>
+
+                            <span>Загрузить фото</span>
+                        </div>
+                        {{if .PhotoError}}
+                            <p>{{.PhotoError}}</p>
+                        {{end}}
+                    </div>
+                </label>
+            </div>
+            <div>
+                <label>
+                    Имя:<br><input type="text" name="first-name" placeholder="Имя" autocomplete="on"
+                                   value="{{.User.FirstName}}"/>
+                    {{if .FirstNameError}}
+                        <p>{{.FirstNameError}}</p>
+                    {{end}}
+                </label>
+                <br>
+                <label>
+                    Фамилия:<br><input type="text" name="last-name" placeholder="Фамилия" autocomplete="on"
+                                       value="{{.User.LastName}}"/>
+                    {{if .LastNameError}}
+                        <p>{{.LastNameError}}</p>
+                    {{end}}
+                </label>
+                <br>
+                <label>
+                    Город:<br><select name="country" value="{{.User.Country}}" required="required">
+                        <option value="" selected>Выберите город</option>
+                        <option>Киев</option>
+                        <option>Харков</option>
+                        <option>Одеса</option>
+                    </select>
+                    {{if .CountryError}}
+                        <p>{{.CountryError}}</p>
+                    {{end}}
+                </label>
+                <br>
+                <label>
+                    Телефон:<br><input type="tel" name="phone" placeholder="+3" autocomplete="on" value="{{.User.Phone}}"/>
+                    {{if .PhoneError}}
+                        <p>{{.PhoneError}}</p>
+                    {{end}}
+                </label>
+                <br>
+                <label>
+                    Информация:<br><textarea style="width: 285px; height: 140px;" name="info" autocomplete="on"
+                                             placeholder="текст">{{.User.Info}}</textarea>
+                    {{if .InfoError}}
+                        <p>{{.InfoError}}</p>
+                    {{end}}
+                </label>
+                <br><br>
+                <input id="bt" type="submit" value="Добавить"/> {{if .User.ID}}или <a href="/addNewUser">создать нового</a>{{end}}
+            </div>
+        </div>
+    </form>
+{{else}}
+    <div class="body">
+        <div class="left-element">
+            <label for="image" class="img u-mb-medium photo img-bg">
+                <li>{{.User.Photo}}</li>
+            </label>
+        </div>
+        <div>
+            <ul>
+                <li>{{.User.FirstName}}</li>
+                <li>{{.User.LastName}}</li>
+                <li>{{.User.Country}}</li>
+                <li>{{.User.Phone}}</li>
+                <li>{{.User.Info}}</li>
+                <a href="/customers/{{.User.ID}}/edit">Редактировать</a>
+            </ul>
+        </div>
+    </div>
+
+{{end}}
+
+<script>
+
+    document.querySelector("input").addEventListener("change", function () {
+        if (this.files[0]) {
+            var fr = new FileReader();
+
+            fr.addEventListener("load", function () {
+                document.querySelector(".update").classList.add('hoverable')
+                document.querySelector(".img-bg").style.backgroundImage = `url("${fr.result}")`;
+            }, false);
+
+            fr.readAsDataURL(this.files[0]);
+        }
+    });
+
+</script>
+
+</body>
+</html>
