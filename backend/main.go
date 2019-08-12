@@ -20,10 +20,12 @@ func main() {
 
 	mux.Get("/", controllers.GetUsers)
 	//mux.Post("/customers/{userID}", controllers.Redirect)
+	//mux.Get("/", controllers.Match)
 	mux.Get("/customers/{userID}", controllers.GetUser) // просмотр юзера
 	mux.Post("/customers/{userID}", controllers.GetUser)
 	mux.Get("/customers/{userID}/edit", controllers.GetUpdateUser) // редактирование
 	mux.Post("/customers/{userID}/edit", controllers.UpdateUser)
+	mux.Get("/customers/{userID}/Delete", controllers.DeleteUser) // удаление юзера
 
 	mux.Get("/addNewUser", controllers.GetNewUser) //
 	mux.Post("/addNewUser", controllers.AddUser) // добавление нового юзера

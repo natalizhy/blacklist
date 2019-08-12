@@ -26,6 +26,14 @@ type UserTemp struct {
 	InfoError      string
 	PhotoError     string
 }
+func Match(w http.ResponseWriter, r *http.Request) {
+	err := repositories.Match()
+
+	if err != nil {
+		w.Write([]byte("Юзеры не найден"))
+		return
+	}
+}
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := repositories.GetUsers()
@@ -67,10 +75,9 @@ func GetNewUser(w http.ResponseWriter, r *http.Request)    {
 	userTemp := UserTemp{IsEdit: true, User: user}
 
 	RenderTempl(w, "templates/profile.html", userTemp)
-
 }
 
-func AddUser(w http.ResponseWriter, r *http.Request)    {
+func AddUser(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	userTemp := UserTemp{IsEdit: true, User: user}
 
@@ -92,7 +99,6 @@ func AddUser(w http.ResponseWriter, r *http.Request)    {
 	}
 
 	http.Redirect(w, r, "/customers/"+ strconv.FormatInt(userID, 10), http.StatusTemporaryRedirect)
-
 }
 
 func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -117,19 +123,13 @@ func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
 	userTemp.User = user
 
 	RenderTempl(w, "templates/profile.html", userTemp)
-
 }
 
 func Search(w http.ResponseWriter, r *http.Request) {
-	users, err := repositories.GetUsers()
-
-		if err != nil {
-			w.Write([]byte("Юзеры не найден"))
-			return
-		}
+	users := repositories.Search
+	//
 
 	RenderTempl(w, "templates/search.html", users)
-
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -166,7 +166,20 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
-func DeleteUser(w http.ResponseWriter, r *http.Request) {}
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	userIDstr := chi.URLParam(r, "userID")
+	user := models.User{}
+
+	userID, err := strconv.ParseInt(userIDstr, 10, 64)
+
+	err = repositories.DeleteUser(user, userID)
+
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+}
 
 func RenderTempl(w http.ResponseWriter, tmplName string, data interface{}) {
 	tmpl, err := template.ParseFiles(tmplName)

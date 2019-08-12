@@ -4,10 +4,14 @@ import (
 	//"database/sql"
 	"fmt"
 	"github.com/natalizhy/blacklist/backend/models"
-
 	//"github.com/jmoiron/sqlx"
 )
 
+func Match() (err error) {
+	_, err = DB.Exec("CREATE FULLTEXT INDEX customers ON articles(first_name, last_name, phone)")
+	return
+
+}
 func GetUsers() (users []models.User, err error) {
 	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` FROM `customers` ORDER BY id DESC")
 
@@ -54,37 +58,17 @@ func AddUser(user models.User) (newUserId int64, err error) {
 
 	return
 }
+func Search(user models.User) (err error) {
+	result := DB.QueryRowx("SELECT `first_name`, `last_name`, `phone` FROM customers WHERE MATCH (first_name,last_name, phone) AGAINST ('configured mysql')")
 
-//func DBUpdate() {
-//
-//	res, err := database.Exec("INSERT INTO `customers` (`first_name`, `last_name`, `country`, `phone`, `info`, `photo`) VALUES (?, ?, ?, ?, ?, ?, ?)", `FirstName`, `LastName`, `Country`, `Phone`, `Info`, `Photo`)
-//
-//	if err != nil {
-//		panic(err)
-//	}
-//	id, err := res.LastInsertId()
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	_, err = database.Exec("UPDATE customers set name=\"John\" where id=?", id)
-//	if err != nil {
-//		panic(err)
-//	}
-//}
-//func DBDelete() {
-//	res, err := database.Exec("INSERT INTO `customers` (`first_name`, `last_name`, `country`, `phone`, `info`, `photo`) VALUES (?, ?, ?, ?, ?, ?, ?)", `FirstName`, `LastName`, `Country`, `Phone`, `Info`, `Photo`)
-//
-//	if err != nil {
-//		panic(err)
-//	}
-//	id, err := res.LastInsertId()
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	_, err = database.Exec("DELETE FROM customers where id=?", id)
-//	if err != nil {
-//		panic(err)
-//	}
-//}
+	err = result.StructScan(&user)
+
+	return
+}
+func DeleteUser(user models.User, userID int64) (err error) {
+	result := DB.QueryRowx("DELETE FROM customers where id=?", userID)
+
+	err = result.StructScan(&user)
+
+	return
+}
