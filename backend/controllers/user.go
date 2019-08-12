@@ -162,7 +162,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	userTemp.User = user
 	userTemp.IsSaveOk = true
 
-
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
@@ -178,7 +177,6 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-
 }
 
 func RenderTempl(w http.ResponseWriter, tmplName string, data interface{}) {
