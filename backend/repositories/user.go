@@ -13,7 +13,7 @@ func Match() (err error) {
 
 }
 func GetUsers() (users []models.User, err error) {
-	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` FROM `customers`  WHERE `status`='ok' ORDER BY id DESC")
+	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` FROM `customers`  WHERE `status`='1' ORDER BY id DESC")
 
 	if err != nil {
 		return
@@ -30,7 +30,7 @@ func GetUsers() (users []models.User, err error) {
 }
 
 func GetUserById(userID int64) (user models.User, err error) {
-	result := DB.QueryRowx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` FROM `customers` WHERE `id`=? `status`=? ", userID, "ok")
+	result := DB.QueryRowx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` FROM `customers` WHERE `id`=?", userID,)
 
 	err = result.StructScan(&user)
 
@@ -45,7 +45,7 @@ func UpdateUser(user models.User, userID int64) (err error) {
 func AddUser(user models.User) (newUserId int64, err error) {
 	newUserId = 0
 
-	res, err := DB.Exec("INSERT INTO `customers` (`first_name`, `last_name`, `country`, `phone`, `info`, `status`) VALUES (?, ?, ?, ?, ?, ?)", user.FirstName, user.LastName, user.Country, user.Phone, user.Info, "ok")
+	res, err := DB.Exec("INSERT INTO `customers` (`first_name`, `last_name`, `country`, `phone`, `info`, `status`) VALUES (?, ?, ?, ?, ?, ?)", user.FirstName, user.LastName, user.Country, user.Phone, user.Info, "1")
 	if err != nil {
 		return
 	}
@@ -66,7 +66,7 @@ func Search(user models.User) (err error) {
 	return
 }
 func DeleteUser(user models.User, userID int64) (err error) {
-	result := DB.QueryRowx("UPDATE `customers` SET status=? WHERE id=?", "Delete", userID)
+	result := DB.QueryRowx("UPDATE `customers` SET status=? WHERE id=?", "0", userID)
 
 	err = result.StructScan(&user)
 
