@@ -13,7 +13,7 @@
     <div class="body">
         <div class="left-element">
             <label>
-                <input type="text" name="search" placeholder="Поиск">
+                <input type="text" name="search" placeholder="Поиск" value="{{.UserSearch}}">
             </label>
         </div>
 
@@ -22,6 +22,20 @@
             </label>
     </div>
 </form>
+<ul>
+    {{range .Consumers}}
+        <div class="user">
+            <label class="image">{{.Photo}}</label>
+            <li><a href="/customers/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.Country}}</li>
+            <div class="dropdown">
+                <button onclick="myFunction()" class="dropbtn">&#8942;</button>
+                <div id="myDropdown" class="dropdown-content">
+                    <a href="/customers/{{.ID}}/Delete">удалить</a>
+                </div>
+            </div>
+        </div>
+    {{end}}
+</ul>
 
 </body>
 </html>

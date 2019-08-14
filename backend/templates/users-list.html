@@ -6,69 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title></title>
     <link href="/assets/css/styles.css" rel="stylesheet" type="text/css">
-<style>
-    .user {
-        width: 350px;
-        height: 60px;
-        border: 1.5px solid #000000;
-        border-radius: 10px;
-        list-style-type: none;
-        padding-top: 10px;
-        padding-left: 15px;
-        padding: 1em 0;
-        display: flex;
-        margin-bottom: 20px;
-        padding-left: 15px;
-        position:relative;
-    }
-    li {
-        padding-left: 20px;
-    }
-    .user:hover {
-        border: 1.5px solid rgb(168, 168, 168);
-    }
-    .image {
-        width: 60px;
-        background-color: black;
-    }
-    ul {
-        padding-inline-start: 0;
-    }
-    a {
-        text-decoration: none;
-    }
-    .dropdown {
-        padding-left: 170px;
-    }
 
-        /* Dropdown Button */
-    .dropbtn {
-        background: none;
-        color: black;
-        font-size: 21px;
-        border: none;
-        cursor: pointer;
-    }
-
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        background-color: #f1f1f1;
-        min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 1;
-    }
-
-    .dropdown-content a {
-        color: black;
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
-    }
-    .dropdown-content a:hover {background-color: #ddd}
-
-    .show+.dropdown-content {display:block;}
-</style>
 </head>
 <body>
 
@@ -77,16 +15,16 @@
 
 <ul>
     {{range .}}
-        <div class="user">
+        <li class="user">
             <label class="image">{{.Photo}}</label>
-            <li><a href="/customers/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.Country}}</li>
+            <div><a href="/customers/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.Country}}</div>
             <div class="dropdown">
-                <button onclick="myFunction()" class="dropbtn">&#8942;</button>
+                <button onclick="myFunction()" onfocusin="myFunction()" class="dropbtn">&#8942;</button>
                 <div id="myDropdown" class="dropdown-content">
                     <a href="/customers/{{.ID}}/Delete">удалить</a>
                 </div>
             </div>
-        </div>
+        </li>
     {{end}}
 </ul>
 <script>

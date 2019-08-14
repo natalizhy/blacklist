@@ -2,19 +2,20 @@ package controllers
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/natalizhy/blacklist/backend/models"
 	"github.com/natalizhy/blacklist/backend/repositories"
+	"gopkg.in/go-playground/validator.v9"
 	"html/template"
 	"io"
 	"net/http"
 	//"regexp"
-	_ "gopkg.in/go-playground/validator.v9"
 	"strconv"
 )
 
 type UserTemp struct {
-	User models.User
+	User   models.User
 	IsEdit bool
 
 	IsSaveOk bool
@@ -25,23 +26,20 @@ type UserTemp struct {
 	FirstNameError string
 	InfoError      string
 	PhotoError     string
+	SearchError    string
 }
-func Match(w http.ResponseWriter, r *http.Request) {
-	err := repositories.Match()
 
-	if err != nil {
-		w.Write([]byte("Юзеры не найден"))
-		return
-	}
-}
+var validate *validator.Validate
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
+	//userIDstr := chi.URLParam(r, "userID")
 	users, err := repositories.GetUsers()
 
 	if err != nil {
 		w.Write([]byte("Юзеры не найден"))
 		return
 	}
+	fmt.Println(r.FormValue("Search"))
 
 	RenderTempl(w, "templates/users-list.html", users)
 }
@@ -70,11 +68,36 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
-func GetNewUser(w http.ResponseWriter, r *http.Request)    {
+func GetNewUser(w http.ResponseWriter, r *http.Request) {
 	user := models.User{ID: 0}
 	userTemp := UserTemp{IsEdit: true, User: user}
 
 	RenderTempl(w, "templates/profile.html", userTemp)
+}
+
+var userError = map[string]map[string]string{
+	"FirstName": {
+		"required": "Имя не правельно введенное",
+		"alpha":    "Можна использовать только буквы",
+	},
+	"LastName": {
+		"required": "Имя не правельно введенное",
+		"alpha":    "Можна использовать только буквы",
+	},
+	"Country": {
+		"required": "Имя не правельно введенное",
+		"alpha":    "Можна использовать только буквы",
+	},
+	"Phone": {
+		"required": "Имя не правельно введенное",
+		"numeric":  "Можна использовать только цифры",
+	},
+	"Info": {
+		"required": "Обязательное поле",
+	},
+	"Photo": {
+		"file": "файл",
+	},
 }
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
@@ -89,6 +112,24 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	user.Phone = r.FormValue("phone")
 	user.Info = r.FormValue("info")
 
+	validate = validator.New()
+
+	err := validate.Struct(user)
+
+	if err != nil {
+		//validationErrors := err.(validator.ValidationErrors)
+		//fmt.Println(validationErrors)
+
+		for _, err := range err.(validator.ValidationErrors) {
+			fmt.Println()
+			fmt.Println(userError[err.Field()][err.Tag()])
+		}
+		RenderTempl(w, "templates/profile.html", userTemp)
+
+		//w.Write([]byte("Не могу проверить"))
+		return
+	}
+
 	userTemp.User = user
 
 	userID, err := repositories.AddUser(user)
@@ -98,7 +139,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/customers/"+ strconv.FormatInt(userID, 10), http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "/customers/"+strconv.FormatInt(userID, 10), http.StatusTemporaryRedirect)
 }
 
 func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -126,10 +167,29 @@ func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func Search(w http.ResponseWriter, r *http.Request) {
-	users := repositories.Search
-	//
+	//user := models.User{}
+	fmt.Println(r.FormValue("search"))
+	userSearch := r.FormValue("search")
 
-	RenderTempl(w, "templates/search.html", users)
+	//consumers := []models.User{
+	//	models.User{},
+	//	models.User{ID:2, FirstName:"qwert"},
+	//	models.User{ID:3, FirstName:"qwert"},
+	//}
+
+	consumers, _ := repositories.Search(userSearch)
+
+	tmplData := struct {
+		//User models.User
+		UserSearch string
+		Consumers []models.User
+	}{
+		//User: user,
+		UserSearch: userSearch,
+		Consumers:consumers,
+	}
+
+	RenderTempl(w, "templates/search.html", tmplData)
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
