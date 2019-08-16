@@ -8,7 +8,10 @@ import (
 )
 
 func GetUsers() (users []models.User, err error) {
-	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` FROM `customers`  WHERE `status`=1 ORDER BY id DESC")
+	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` " +
+		"FROM `customers` " +
+		"WHERE `status`=1 " +
+		"ORDER BY id DESC")
 
 	if err != nil {
 		return
@@ -25,7 +28,8 @@ func GetUsers() (users []models.User, err error) {
 }
 
 func GetUserById(userID int64) (user models.User, err error) {
-	result := DB.QueryRowx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` FROM `customers` WHERE `id`=?", userID)
+	result := DB.QueryRowx("SELECT `id`, `first_name`, `last_name`, `country`, `phone`, `info` " +
+		"FROM `customers` WHERE `id`=?", userID)
 
 	err = result.StructScan(&user)
 
@@ -33,14 +37,16 @@ func GetUserById(userID int64) (user models.User, err error) {
 }
 
 func UpdateUser(user models.User, userID int64) (err error) {
-	_, err = DB.Exec("UPDATE `customers` SET `first_name`=?, `last_name`=?, `country`=?, `info`=?, `phone`=? WHERE id=?", user.FirstName, user.LastName, user.Country, user.Info, user.Phone, userID)
+	_, err = DB.Exec("UPDATE `customers` SET `first_name`=?, `last_name`=?, `country`=?, `info`=?, `phone`=? " +
+		"WHERE id=?", user.FirstName, user.LastName, user.Country, user.Info, user.Phone, userID)
 	return
 }
 
 func AddUser(user models.User) (newUserId int64, err error) {
 	newUserId = 0
 
-	res, err := DB.Exec("INSERT INTO `customers` (`first_name`, `last_name`, `country`, `phone`, `info`, `status`) VALUES (?, ?, ?, ?, ?, ?)", user.FirstName, user.LastName, user.Country, user.Phone, user.Info, 1)
+	res, err := DB.Exec("INSERT INTO `customers` (`first_name`, `last_name`, `country`, `phone`, `info`, `status`) " +
+		"VALUES (?, ?, ?, ?, ?, ?)", user.FirstName, user.LastName, user.Country, user.Phone, user.Info, 1)
 	if err != nil {
 		return
 	}
@@ -54,7 +60,14 @@ func AddUser(user models.User) (newUserId int64, err error) {
 	return
 }
 func Search(user string) (users []models.User, err error) {
-	rows, err := DB.Queryx("SELECT `last_name` FROM customers WHERE  `last_name` LIKE concat('%', ?, '%')", user)
+	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `country` " +
+		"FROM customers " +
+		"WHERE status=1 " +
+		"AND (" +
+		"first_name LIKE concat('%', ?, '%') OR " +
+		"last_name LIKE concat('%', ?, '%') OR " +
+		"country LIKE concat('%', ?, '%')" +
+		")", user, user, user)
 
 	if err != nil {
 		return
@@ -70,7 +83,7 @@ func Search(user string) (users []models.User, err error) {
 	return
 }
 func DeleteUser(user models.User, userID int64) (err error) {
-	result := DB.QueryRowx("UPDATE `customers` SET status=? WHERE id=?", 0, userID)
+	result := DB.QueryRowx("UPDATE `customers` SET status=0 WHERE id=?", userID)
 
 	err = result.StructScan(&user)
 

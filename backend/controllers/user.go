@@ -10,7 +10,6 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	//"regexp"
 	"strconv"
 )
 
@@ -32,14 +31,12 @@ type UserTemp struct {
 var validate *validator.Validate
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	//userIDstr := chi.URLParam(r, "userID")
 	users, err := repositories.GetUsers()
 
 	if err != nil {
 		w.Write([]byte("Юзеры не найден"))
 		return
 	}
-	fmt.Println(r.FormValue("Search"))
 
 	RenderTempl(w, "templates/users-list.html", users)
 }
@@ -126,7 +123,6 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		}
 		RenderTempl(w, "templates/profile.html", userTemp)
 
-		//w.Write([]byte("Не могу проверить"))
 		return
 	}
 
@@ -167,26 +163,22 @@ func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func Search(w http.ResponseWriter, r *http.Request) {
-	//user := models.User{}
 	fmt.Println(r.FormValue("search"))
 	userSearch := r.FormValue("search")
 
-	//consumers := []models.User{
-	//	models.User{},
-	//	models.User{ID:2, FirstName:"qwert"},
-	//	models.User{ID:3, FirstName:"qwert"},
-	//}
+	user, err := repositories.Search(userSearch)
 
-	consumers, _ := repositories.Search(userSearch)
+	if err != nil {
+		w.Write([]byte("Юзер не найден"))
+		return
+	}
 
 	tmplData := struct {
-		//User models.User
 		UserSearch string
-		Consumers []models.User
+		User  []models.User
 	}{
-		//User: user,
 		UserSearch: userSearch,
-		Consumers:consumers,
+		User:  user,
 	}
 
 	RenderTempl(w, "templates/search.html", tmplData)
