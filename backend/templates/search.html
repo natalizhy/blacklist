@@ -23,10 +23,10 @@
     </div>
 </form>
 <ul>
-    {{range .Consumers}}
+    {{range .User}}
         <div class="user">
             <label class="image">{{.Photo}}</label>
-            <li><a href="/customers/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.Country}}</li>
+            <li><a href="/customers/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.CityID}}</li>
             <div class="dropdown">
                 <button onclick="myFunction()" class="dropbtn">&#8942;</button>
                 <div id="myDropdown" class="dropdown-content">

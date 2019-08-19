@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/natalizhy/blacklist/backend/models"
 	"github.com/natalizhy/blacklist/backend/repositories"
+	"github.com/natalizhy/blacklist/backend/utils"
 	"gopkg.in/go-playground/validator.v9"
 	"html/template"
 	"io"
@@ -14,18 +15,17 @@ import (
 )
 
 type UserTemp struct {
-	User   models.User
-	IsEdit bool
-
+	User     models.User
+	Cities   map[int64]string
+	Error    map[string]map[string]string
+	IsEdit   bool
 	IsSaveOk bool
+}
 
-	PhoneError     string
-	CountryError   string
-	LastNameError  string
-	FirstNameError string
-	InfoError      string
-	PhotoError     string
-	SearchError    string
+var cities = map[int64]string{
+	1: "Киев",
+	2: "Харков",
+	3: "Одесса",
 }
 
 var validate *validator.Validate
@@ -44,7 +44,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	userIDstr := chi.URLParam(r, "userID")
 	user := models.User{}
-	userTemp := UserTemp{IsEdit: false, User: user}
+	userTemp := UserTemp{IsEdit: false, User: user, Cities: cities}
 
 	userID, err := strconv.ParseInt(userIDstr, 10, 64)
 
@@ -67,81 +67,45 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 func GetNewUser(w http.ResponseWriter, r *http.Request) {
 	user := models.User{ID: 0}
-	userTemp := UserTemp{IsEdit: true, User: user}
+	userTemp := UserTemp{IsEdit: true, User: user, Cities: cities}
 
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
-var userError = map[string]map[string]string{
-	"FirstName": {
-		"required": "Имя не правельно введенное",
-		"alpha":    "Можна использовать только буквы",
-	},
-	"LastName": {
-		"required": "Имя не правельно введенное",
-		"alpha":    "Можна использовать только буквы",
-	},
-	"Country": {
-		"required": "Имя не правельно введенное",
-		"alpha":    "Можна использовать только буквы",
-	},
-	"Phone": {
-		"required": "Имя не правельно введенное",
-		"numeric":  "Можна использовать только цифры",
-	},
-	"Info": {
-		"required": "Обязательное поле",
-	},
-	"Photo": {
-		"file": "файл",
-	},
-}
-
 func AddUser(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
-	userTemp := UserTemp{IsEdit: true, User: user}
-
-	// добавить валидации какието сюда
+	userTemp := UserTemp{IsEdit: true, Cities: cities}
+	var err error
 
 	user.FirstName = r.FormValue("first-name")
 	user.LastName = r.FormValue("last-name")
-	user.Country = r.FormValue("country")
+	user.CityID, _ = strconv.ParseInt(r.FormValue("city-id"), 10, 64)
 	user.Phone = r.FormValue("phone")
 	user.Info = r.FormValue("info")
 
-	validate = validator.New()
-
-	err := validate.Struct(user)
-
-	if err != nil {
-		//validationErrors := err.(validator.ValidationErrors)
-		//fmt.Println(validationErrors)
-
-		for _, err := range err.(validator.ValidationErrors) {
-			fmt.Println()
-			fmt.Println(userError[err.Field()][err.Tag()])
-		}
-		RenderTempl(w, "templates/profile.html", userTemp)
-
-		return
-	}
+	userTemp.Error, err = utils.ValidateUser(user)
 
 	userTemp.User = user
 
-	userID, err := repositories.AddUser(user)
+	if err == nil {
+		userID, err := repositories.AddUser(user)
 
-	if err != nil {
-		w.Write([]byte("Юзер не добавлен"))
+		if err != nil {
+			w.Write([]byte("Юзер не добавлен"))
+			return
+		}
+
+		http.Redirect(w, r, "/customers/"+strconv.FormatInt(userID, 10), http.StatusTemporaryRedirect)
 		return
 	}
 
-	http.Redirect(w, r, "/customers/"+strconv.FormatInt(userID, 10), http.StatusTemporaryRedirect)
+	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
 func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
 	userIDstr := chi.URLParam(r, "userID")
 	user := models.User{}
-	userTemp := UserTemp{IsEdit: true, User: user}
+	userTemp := UserTemp{IsEdit: true, User: user, Cities: cities}
 
 	userID, err := strconv.ParseInt(userIDstr, 10, 64)
 
@@ -175,10 +139,10 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	tmplData := struct {
 		UserSearch string
-		User  []models.User
+		User       []models.User
 	}{
 		UserSearch: userSearch,
-		User:  user,
+		User:       user,
 	}
 
 	RenderTempl(w, "templates/search.html", tmplData)
@@ -187,7 +151,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	userIDstr := chi.URLParam(r, "userID")
 	user := models.User{}
-	userTemp := UserTemp{IsEdit: true, User: user, IsSaveOk: false}
+	userTemp := UserTemp{IsEdit: true, IsSaveOk: false, Cities: cities}
 
 	userID, err := strconv.ParseInt(userIDstr, 10, 64)
 
@@ -198,9 +162,11 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user.ID = userID
 	user.FirstName = r.FormValue("first-name")
 	user.LastName = r.FormValue("last-name")
-	user.Country = r.FormValue("country")
+	user.CityID, _ = strconv.ParseInt(r.FormValue("city-id"), 10, 64)
 	user.Phone = r.FormValue("phone")
 	user.Info = r.FormValue("info")
+
+	userTemp.Error, err = utils.ValidateUser(user)
 
 	userTemp.User = user
 
@@ -241,7 +207,6 @@ func RenderTempl(w http.ResponseWriter, tmplName string, data interface{}) {
 	body := &bytes.Buffer{}
 
 	err = tmpl.Execute(body, data)
-
 	if err != nil {
 		io.WriteString(w, err.Error())
 		return

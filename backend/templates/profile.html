@@ -17,7 +17,7 @@
             <div class="left-element">
                 <label for="image" class="img u-mb-medium photo img-bg">
                     <div class="dz-message u-text-center">
-                        <input type="file" name="photo" id="image"
+                        <input type="file" name="photo" id="image" class="saveInput"
                                accept="image/x-png,image/gif,image/jpeg,image/jpg,image/png" autocomplete="on"
                                style="display:none;" value="{{.User.Photo}}"/>
 
@@ -27,9 +27,6 @@
 
                             <span>Загрузить фото</span>
                         </div>
-                        {{if .PhotoError}}
-                            <p>{{.PhotoError}}</p>
-                        {{end}}
                     </div>
                 </label>
             </div>
@@ -37,44 +34,50 @@
                 <label>
                     Имя:<br><input type="text" name="first-name" placeholder="Имя" autocomplete="on"
                                    value="{{.User.FirstName}}"/>
-                    {{if .FirstNameError}}
-                        <p>{{.FirstNameError}}</p>
+                    {{range $keyOrIndex, $value := .Error.FirstName}}
+                        {{if ne $value ""}}
+                            <p>{{$value}}</p>
+                        {{end}}
                     {{end}}
                 </label>
                 <br>
                 <label>
                     Фамилия:<br><input type="text" name="last-name" placeholder="Фамилия" autocomplete="on"
                                        value="{{.User.LastName}}"/>
-                    {{if .LastNameError}}
-                        <p>{{.LastNameError}}</p>
+                    {{range $keyOrIndex, $value := .Error.LastName}}
+                        {{if ne $value ""}}
+                            <p>{{$value}}</p>
+                        {{end}}
                     {{end}}
                 </label>
                 <br>
                 <label>
-                    Город:<br><select name="country" value="{{.User.Country}}" required="required">
-                        <option value="" selected>Выберите город</option>
-                        <option>Киев</option>
-                        <option>Харков</option>
-                        <option>Одеса</option>
+                    Город:<br><select name="city-id" required="required" autofocus>
+                        {{ $cityID := .User.CityID }}
+                        {{range $keyOrIndex, $value := .Cities}}
+                            <option value="{{$keyOrIndex}}"
+                                    {{if eq $keyOrIndex $cityID}}selected{{end}}>{{$value}}</option>
+                        {{end}}
                     </select>
-                    {{if .CountryError}}
-                        <p>{{.CountryError}}</p>
-                    {{end}}
                 </label>
                 <br>
                 <label>
                     Телефон:<br><input type="tel" name="phone" placeholder="+3" autocomplete="on"
                                        value="{{.User.Phone}}"/>
-                    {{if .PhoneError}}
-                        <p>{{.PhoneError}}</p>
+                    {{range $keyOrIndex, $value := .Error.Phone}}
+                        {{if ne $value ""}}
+                            <p>{{$value}}</p>
+                        {{end}}
                     {{end}}
                 </label>
                 <br>
                 <label>
                     Информация:<br><textarea style="width: 285px; height: 140px;" name="info" autocomplete="on"
                                              placeholder="текст">{{.User.Info}}</textarea>
-                    {{if .InfoError}}
-                        <p>{{.InfoError}}</p>
+                    {{range $keyOrIndex, $value := .Error.Info}}
+                        {{if ne $value ""}}
+                            <p>{{$value}}</p>
+                        {{end}}
                     {{end}}
                 </label>
                 <br><br>
@@ -94,7 +97,7 @@
             <ul class="list">
                 <li>{{.User.FirstName}}</li>
                 <li>{{.User.LastName}}</li>
-                <li>{{.User.Country}}</li>
+                <li>{{.User.CityID}}</li>
                 <li>{{.User.Phone}}</li>
                 <li>{{.User.Info}}</li>
                 <a class="href" href="/customers/{{.User.ID}}/edit">Редактировать</a>
@@ -103,6 +106,8 @@
     </div>
 
 {{end}}
+<script data-require="jquery@*" data-semver="3.0.0"
+        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.js"></script>
 
 <script>
 
@@ -117,6 +122,35 @@
 
             fr.readAsDataURL(this.files[0]);
         }
+    });
+
+    // var $data = {};
+    // $('input').find('input, textearea, select').each(function () {
+    //     $data[this.name] = $(this).val();
+    // });
+
+    document.ready(function () {
+        console.log("ready!");
+        if (typeof (Storage) !== 'undefined') {
+            populateInputs();
+        }
+
+        function populateInputs() {
+            console.log('Populating');
+            for (var i = 0; i < sessionStorage.length; i++) {
+                var temp = sessionStorage.key(i);
+                if (temp.startsWith('inputData')) {
+                    console.log('Setting ' + temp.split('-')[1] +
+                        ' to ' + sessionStorage.getItem(temp));
+                    $('#' + temp.split('-')[1]).val(sessionStorage.getItem(temp));
+                }
+            }
+        }
+
+        '.saveInput'.on('input', function () {
+            console.log(this.id + ' has ' + this.value);
+            sessionStorage.setItem('inputData-' + this.id, this.value);
+        });
     });
     // el.focusin(function () {
     //     this.showDelete()
