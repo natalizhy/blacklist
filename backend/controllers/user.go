@@ -10,6 +10,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 )
@@ -26,6 +27,10 @@ var cities = map[int64]string{
 	1: "Киев",
 	2: "Харков",
 	3: "Одесса",
+}
+var allowedMimeType = map[string]string{
+	"image/jpeg":  ".jpg",
+	"image/png":   ".png",
 }
 
 var validate *validator.Validate
@@ -83,11 +88,39 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	user.Phone = r.FormValue("phone")
 	user.Info = r.FormValue("info")
 
+	file, handler, err := r.FormFile("photo")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer file.Close()
+
+	fmt.Println("Size", handler.Size)
+
+
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		fmt.Println(23,err)
+	}
+
+	contentType := http.DetectContentType(buffer)
+
+	file.Seek(0, 0)
+
+	if _, ok := allowedMimeType[contentType]; !ok {
+		w.Write([]byte("vvhvgh"))
+		return
+	}
+
 	userTemp.Error, err = utils.ValidateUser(user)
 
 	userTemp.User = user
 
 	if err == nil {
+		user.Photo = allowedMimeType[contentType]
+
 		userID, err := repositories.AddUser(user)
 
 		if err != nil {
@@ -95,7 +128,20 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Redirect(w, r, "/customers/"+strconv.FormatInt(userID, 10), http.StatusTemporaryRedirect)
+		data, err := ioutil.ReadAll(file)
+		if err != nil {
+			fmt.Fprintf(w, "%v", err)
+			return
+		}
+
+		err = ioutil.WriteFile("./assets/users-photo/"+strconv.FormatInt(userID, 10)+user.Photo, data, 0777)
+
+		if err != nil {
+			fmt.Fprintf(w, "%v", err)
+			return
+		}
+
+		http.Redirect(w, r, "/customers/"+strconv.FormatInt(userID, 10), http.StatusSeeOther)
 		return
 	}
 
@@ -165,6 +211,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user.CityID, _ = strconv.ParseInt(r.FormValue("city-id"), 10, 64)
 	user.Phone = r.FormValue("phone")
 	user.Info = r.FormValue("info")
+	user.Photo = r.FormValue("photo")
 
 	userTemp.Error, err = utils.ValidateUser(user)
 

@@ -129,6 +129,8 @@ ul {
 }
 
 .img-bg {
+    height: 300px;
+    width: 200px;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -200,7 +202,6 @@ ul {
 
 .image {
     width: 60px;
-    background-color: black;
 }
 
 .dropdown {

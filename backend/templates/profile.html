@@ -11,22 +11,23 @@
 <body>
 
 {{if .IsEdit}}
-    {{if .IsSaveOk}}  <h1 style="color: green">Юзер обновлен успешно</h1> {{end}}
-    <form action="/{{if .User.ID}}customers/{{.User.ID}}/edit{{else}}addNewUser{{end}}" method="POST">
+    {{if .IsSaveOk}} <h1 style="color: green">Юзер обновлен успешно</h1> {{end}}
+    <form action="/{{if .User.ID}}customers/{{.User.ID}}/edit{{else}}addNewUser{{end}}" enctype="multipart/form-data" method="POST">
         <div class="body">
             <div class="left-element">
-                <label for="image" class="img u-mb-medium photo img-bg">
-                    <div class="dz-message u-text-center">
-                        <input type="file" name="photo" id="image" class="saveInput"
-                               accept="image/x-png,image/gif,image/jpeg,image/jpg,image/png" autocomplete="on"
-                               style="display:none;" value="{{.User.Photo}}"/>
+                <label for="image" class="img photo img-bg">
+{{/*                    <img class="img-bg">*/}}
+                    <div class="u-text-center">
+
+                        <input type="file" name="photo" id="image" value="{{.User.Photo}}"
+                               accept="image/x-png,image/jpeg,image/jpg,image/png" style="display:none;" />
 
                         <div class="update">
                             <img class="img dz-icon" style="height: 40px;"
                                  src="/assets/img/cloud-storage-download.svg" alt="Face"/>
-
                             <span>Загрузить фото</span>
                         </div>
+
                     </div>
                 </label>
             </div>
@@ -89,8 +90,8 @@
 {{else}}
     <div class="body">
         <div class="left-element">
-            <label for="image" class="img u-mb-medium photo img-bg">
-                <li>{{.User.Photo}}</li>
+            <label for="image" class="img photo img-bg" style="overflow: hidden;">
+                <img class="photo img-bg" style="height: 300px;" src="/assets/users-photo/{{.User.ID}}{{.User.Photo}}" alt="photo">
             </label>
         </div>
         <div>
@@ -106,8 +107,6 @@
     </div>
 
 {{end}}
-<script data-require="jquery@*" data-semver="3.0.0"
-        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.js"></script>
 
 <script>
 
@@ -124,34 +123,6 @@
         }
     });
 
-    // var $data = {};
-    // $('input').find('input, textearea, select').each(function () {
-    //     $data[this.name] = $(this).val();
-    // });
-
-    document.ready(function () {
-        console.log("ready!");
-        if (typeof (Storage) !== 'undefined') {
-            populateInputs();
-        }
-
-        function populateInputs() {
-            console.log('Populating');
-            for (var i = 0; i < sessionStorage.length; i++) {
-                var temp = sessionStorage.key(i);
-                if (temp.startsWith('inputData')) {
-                    console.log('Setting ' + temp.split('-')[1] +
-                        ' to ' + sessionStorage.getItem(temp));
-                    $('#' + temp.split('-')[1]).val(sessionStorage.getItem(temp));
-                }
-            }
-        }
-
-        '.saveInput'.on('input', function () {
-            console.log(this.id + ' has ' + this.value);
-            sessionStorage.setItem('inputData-' + this.id, this.value);
-        });
-    });
     // el.focusin(function () {
     //     this.showDelete()
     // })

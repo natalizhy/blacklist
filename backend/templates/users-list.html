@@ -16,7 +16,7 @@
 <ul>
     {{range .}}
         <li class="user">
-            <label class="image">{{.Photo}}</label>
+                <img class="image" src="/assets/users-photo/{{.ID}}{{.Photo}}" alt="photo">
             <div><a href="/customers/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.CityID}}</div>
             <div class="dropdown">
                 <button onclick="myFunction()" onfocusin="myFunction()" class="dropbtn">&#8942;</button>
