@@ -7,10 +7,10 @@ import (
 	"github.com/natalizhy/blacklist/backend/models"
 	"github.com/natalizhy/blacklist/backend/repositories"
 	"github.com/natalizhy/blacklist/backend/utils"
-	"gopkg.in/go-playground/validator.v9"
 	"html/template"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 )
@@ -21,6 +21,8 @@ type UserTemp struct {
 	Error    map[string]map[string]string
 	IsEdit   bool
 	IsSaveOk bool
+
+	PhotoError string
 }
 
 var cities = map[int64]string{
@@ -29,11 +31,9 @@ var cities = map[int64]string{
 	3: "Одесса",
 }
 var allowedMimeType = map[string]string{
-	"image/jpeg":  ".jpg",
-	"image/png":   ".png",
+	"image/jpeg": ".jpg",
+	"image/png":  ".png",
 }
-
-var validate *validator.Validate
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := repositories.GetUsers()
@@ -78,74 +78,116 @@ func GetNewUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
+	userIDstr := chi.URLParam(r, "userID")
 	user := models.User{}
-	userTemp := UserTemp{IsEdit: true, Cities: cities}
+	userTemp := UserTemp{IsEdit: true, Cities: cities, PhotoError: ""}
 	var err error
+	var userID int64
+	//var ext string
 
 	user.FirstName = r.FormValue("first-name")
 	user.LastName = r.FormValue("last-name")
 	user.CityID, _ = strconv.ParseInt(r.FormValue("city-id"), 10, 64)
 	user.Phone = r.FormValue("phone")
 	user.Info = r.FormValue("info")
+	photo := r.FormValue("h-photo")
 
-	file, handler, err := r.FormFile("photo")
-	if err != nil {
-		fmt.Println(err)
-		return
+	//if photo == "" {
+	//	userTemp.PhotoError = "Не выбрана фотография для юзера"
+	//	fmt.Println(userTemp.PhotoError)
+	//	return
+	//}
+
+	file, _, photoErr := r.FormFile("photo")
+
+	if photoErr != nil && photo == "" {
+		userTemp.PhotoError = "Не выбрана фотография для юзера"
 	}
 
-	defer file.Close()
-
-	fmt.Println("Size", handler.Size)
-
-
-	buffer := make([]byte, 512)
-	_, err = file.Read(buffer)
-	if err != nil {
-		fmt.Println(23,err)
-	}
-
-	contentType := http.DetectContentType(buffer)
-
-	file.Seek(0, 0)
-
-	if _, ok := allowedMimeType[contentType]; !ok {
-		w.Write([]byte("vvhvgh"))
-		return
+	if photoErr == nil {
+		defer file.Close()
 	}
 
 	userTemp.Error, err = utils.ValidateUser(user)
 
 	userTemp.User = user
 
-	if err == nil {
-		user.Photo = allowedMimeType[contentType]
+	if err == nil && userTemp.PhotoError != "" {
 
-		userID, err := repositories.AddUser(user)
+		//if photoErr == nil {
+		//	ct, err := getContentType(file)
+		//
+		//	if err != nil {
+		//		w.Write([]byte("err"))
+		//		return
+		//	}
+		//
+		//	if _, ok := allowedMimeType[ct]; ok {
+		//		ext = allowedMimeType[ct]
+		//	}
+		//}
 
-		if err != nil {
-			w.Write([]byte("Юзер не добавлен"))
-			return
+		if photoErr != nil {
+			user.Photo = photo
 		}
 
-		data, err := ioutil.ReadAll(file)
-		if err != nil {
-			fmt.Fprintf(w, "%v", err)
-			return
+		if userIDstr != "" {
+
+			userID, err = strconv.ParseInt(userIDstr, 10, 64)
+			if err != nil {
+				w.Write([]byte("Неправельный ID"))
+				return
+			}
+			err = repositories.UpdateUser(user, userID)
+
+		} else {
+
+			userID, err = repositories.AddUser(user)
+			if err != nil {
+				w.Write([]byte("Юзер не добавлен"))
+				return
+			}
 		}
 
-		err = ioutil.WriteFile("./assets/users-photo/"+strconv.FormatInt(userID, 10)+user.Photo, data, 0777)
-
-		if err != nil {
-			fmt.Fprintf(w, "%v", err)
-			return
+		if photoErr == nil {
+			_ = SavePhoto(userID, file, user.Photo)
 		}
 
 		http.Redirect(w, r, "/customers/"+strconv.FormatInt(userID, 10), http.StatusSeeOther)
 		return
+
 	}
 
 	RenderTempl(w, "templates/profile.html", userTemp)
+}
+
+//func getContentType(file multipart.File) (contentType string, err error) {
+//	buffer := make([]byte, 512)
+//	_, err = file.Read(buffer)
+//	if err != nil {
+//		fmt.Println(23, err)
+//	}
+//
+//	contentType = http.DetectContentType(buffer)
+//
+//	_, err = file.Seek(0, 0)
+//
+//	return
+//}
+
+func SavePhoto(userID int64, file multipart.File, ext string) (err error) {
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return
+	}
+
+	err = ioutil.WriteFile("./assets/users-photo/"+strconv.FormatInt(userID, 10)+ext, data, 0777)
+
+	if err != nil {
+		return
+	}
+	return
 }
 
 func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -192,42 +234,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	RenderTempl(w, "templates/search.html", tmplData)
-}
-
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	userIDstr := chi.URLParam(r, "userID")
-	user := models.User{}
-	userTemp := UserTemp{IsEdit: true, IsSaveOk: false, Cities: cities}
-
-	userID, err := strconv.ParseInt(userIDstr, 10, 64)
-
-	if err != nil {
-		w.Write([]byte("Юзер не найден"))
-		return
-	}
-	user.ID = userID
-	user.FirstName = r.FormValue("first-name")
-	user.LastName = r.FormValue("last-name")
-	user.CityID, _ = strconv.ParseInt(r.FormValue("city-id"), 10, 64)
-	user.Phone = r.FormValue("phone")
-	user.Info = r.FormValue("info")
-	user.Photo = r.FormValue("photo")
-
-	userTemp.Error, err = utils.ValidateUser(user)
-
-	userTemp.User = user
-
-	err = repositories.UpdateUser(user, userID)
-
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	userTemp.User = user
-	userTemp.IsSaveOk = true
-
-	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {

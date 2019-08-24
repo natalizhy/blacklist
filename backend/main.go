@@ -23,7 +23,7 @@ func main() {
 	mux.Get("/customers/{userID}", controllers.GetUser) // просмотр юзера
 	mux.Post("/customers/{userID}", controllers.GetUser)
 	mux.Get("/customers/{userID}/edit", controllers.GetUpdateUser) // редактирование
-	mux.Post("/customers/{userID}/edit", controllers.UpdateUser)
+	mux.Post("/customers/{userID}/edit", controllers.AddUser)
 	mux.Get("/customers/{userID}/Delete", controllers.DeleteUser) // удаление юзера
 
 	mux.Get("/addNewUser", controllers.GetNewUser) //

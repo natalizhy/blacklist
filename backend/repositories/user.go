@@ -1,10 +1,8 @@
 package repositories
 
 import (
-	//"database/sql"
 	"fmt"
 	"github.com/natalizhy/blacklist/backend/models"
-	//"github.com/jmoiron/sqlx"
 )
 
 func GetUsers() (users []models.User, err error) {

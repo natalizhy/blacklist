@@ -85,6 +85,8 @@ ul {
 /*photo*/
 
 .dz-icon {
+    height: 40px;
+    width: 200px;
     display: block;
     margin-bottom: 10px;
 }
@@ -105,6 +107,7 @@ ul {
 .img {
     width: 200px;
     height: 300px;
+    overflow: hidden;
 }
 
 .left-element {
@@ -116,6 +119,7 @@ ul {
 }
 
 .update {
+    position: relative;
     padding-top: 120px;
     padding-bottom: 120px;
 }
@@ -129,8 +133,9 @@ ul {
 }
 
 .img-bg {
+    position: absolute;
     height: 300px;
-    width: 200px;
+    /*width: 200px;*/
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -202,6 +207,10 @@ ul {
 
 .image {
     width: 60px;
+}
+
+#image {
+    display: none;
 }
 
 .dropdown {

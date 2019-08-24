@@ -12,23 +12,31 @@
 
 {{if .IsEdit}}
     {{if .IsSaveOk}} <h1 style="color: green">Юзер обновлен успешно</h1> {{end}}
-    <form action="/{{if .User.ID}}customers/{{.User.ID}}/edit{{else}}addNewUser{{end}}" enctype="multipart/form-data" method="POST">
+    <form action="/{{if .User.ID}}customers/{{.User.ID}}/edit{{else}}addNewUser{{end}}" enctype="multipart/form-data"
+          method="POST">
         <div class="body">
             <div class="left-element">
-                <label for="image" class="img photo img-bg">
-{{/*                    <img class="img-bg">*/}}
-                    <div class="u-text-center">
+                <label>
 
-                        <input type="file" name="photo" id="image" value="{{.User.Photo}}"
-                               accept="image/x-png,image/jpeg,image/jpg,image/png" style="display:none;" />
+                    <div class="u-text-center img photo">
+                        {{if .User.ID}}
+                            <img class="photo img-bg" src="/assets/users-photo/{{.User.ID}}{{.User.Photo}}" alt="photo">
+                        {{else}}<img class="img photo img-bg">{{.User.Photo}}{{end}}
+
+                        <input type="hidden" name="h-photo" value="{{.User.Photo}}"/>
+                        <input type="file" name="photo" id="image"
+                               accept="image/x-png,image/jpeg,image/jpg,image/png"/>
+
 
                         <div class="update">
-                            <img class="img dz-icon" style="height: 40px;"
-                                 src="/assets/img/cloud-storage-download.svg" alt="Face"/>
+                            <img class="dz-icon" src="/assets/img/cloud-storage-download.svg" alt="Face"/>
                             <span>Загрузить фото</span>
                         </div>
 
                     </div>
+                        {{if .PhotoError}}
+                            <p>"Не выбрана фотография для юзера"</p>
+                        {{end}}
                 </label>
             </div>
             <div>
@@ -90,8 +98,9 @@
 {{else}}
     <div class="body">
         <div class="left-element">
-            <label for="image" class="img photo img-bg" style="overflow: hidden;">
-                <img class="photo img-bg" style="height: 300px;" src="/assets/users-photo/{{.User.ID}}{{.User.Photo}}" alt="photo">
+            <label for="image" class="img photo" style="overflow: hidden;">
+                <img class="photo img-bg" style="height: 300px;" src="/assets/users-photo/{{.User.ID}}{{.User.Photo}}"
+                     alt="photo">
             </label>
         </div>
         <div>
@@ -109,7 +118,7 @@
 {{end}}
 
 <script>
-
+    console.log({{.User.ID}}{{.User.Photo}})
     document.querySelector("input").addEventListener("change", function () {
         if (this.files[0]) {
             var fr = new FileReader();

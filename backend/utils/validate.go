@@ -1,35 +1,47 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/natalizhy/blacklist/backend/models"
 	"gopkg.in/go-playground/validator.v9"
+	"regexp"
 )
 
 var userError = map[string]map[string]string{
 	"FirstName": {
-		"required": "Обязательное поле1",
-		"alpha":    "Можна использовать только буквы",
+		"required": "Обязательное поле",
+		"cyr":    "Можна использовать только буквы",
 		"min":    "Слишком мало символов",
 	},
 	"LastName": {
-		"required": "Обязательное поле2",
+		"required": "Обязательное поле",
 		"alpha":    "Можна использовать только буквы",
 		"min":    "Слишком мало символов",
 	},
 	"Phone": {
-		"required": "Обязательное поле3",
+		"required": "Обязательное поле",
 		"numeric":  "Можна использовать только цифры",
 		"min":    "Слишком мало символов",
 	},
 	"Info": {
-		"required": "Обязательное поле4",
+		"required": "Обязательное поле",
 		"min":    "Слишком мало символов",
 	},
 }
 
-func ValidateUser(user models.User) (errors map[string]map[string]string, err error) {
+var validate = validator.New()
 
-	validate := validator.New()
+func ValidateCyr(fl validator.FieldLevel) bool {
+	result := regexp.MustCompile("^[a-zA-ZА-Яа-я]+$")
+	return result.MatchString(fl.Field().String())
+}
+
+func ValidateUser(user models.User) (errors map[string]map[string]string, err error) {
+	err = validate.RegisterValidation("cyr", ValidateCyr)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	err = validate.Struct(user)
 
