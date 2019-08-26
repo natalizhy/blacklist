@@ -35,8 +35,14 @@ func GetUserById(userID int64) (user models.User, err error) {
 }
 
 func UpdateUser(user models.User, userID int64) (err error) {
-	_, err = DB.Exec("UPDATE `customers` SET `first_name`=?, `last_name`=?, `city_id`=?, `phone`=?, `info`=?, `photo`=? "+
-		"WHERE id=?", user.FirstName, user.LastName, user.CityID, user.Phone, user.Info, user.Photo, userID)
+	_, err = DB.Exec("UPDATE `customers` SET `first_name`=?, `last_name`=?, `city_id`=?, `phone`=?, `info`=? "+
+		"WHERE id=?", user.FirstName, user.LastName, user.CityID, user.Phone, user.Info, userID)
+	return
+}
+
+func UpdateUserPhoto(user models.User, userID int64) (err error) {
+	_, err = DB.Exec("UPDATE `customers` SET `photo`=? "+
+		"WHERE id=?", user.Photo, userID)
 	return
 }
 
@@ -53,7 +59,7 @@ func AddUser(user models.User) (newUserId int64, err error) {
 		return
 	}
 
-	fmt.Println("Created user with id:", newUserId)
+	fmt.Println("Created user with id:", newUserId, "and", user.Photo, "photo")
 
 	return
 }

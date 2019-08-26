@@ -21,7 +21,7 @@
                     <div class="u-text-center img photo">
                         {{if .User.ID}}
                             <img class="photo img-bg" src="/assets/users-photo/{{.User.ID}}{{.User.Photo}}" alt="photo">
-                        {{else}}<img class="img photo img-bg">{{.User.Photo}}{{end}}
+                        {{else}}<img class="img photo img-bg" src="">{{.User.Photo}}{{end}}
 
                         <input type="hidden" name="h-photo" value="{{.User.Photo}}"/>
                         <input type="file" name="photo" id="image"
@@ -34,9 +34,9 @@
                         </div>
 
                     </div>
-                        {{if .PhotoError}}
-                            <p>"Не выбрана фотография для юзера"</p>
-                        {{end}}
+                    {{if .PhotoError}}
+                        <p>{{.PhotoError}}</p>
+                    {{end}}
                 </label>
             </div>
             <div>
