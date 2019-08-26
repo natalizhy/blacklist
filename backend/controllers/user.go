@@ -92,10 +92,11 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	photo := r.FormValue("h-photo")
 
 	file, _, photoErr := r.FormFile("photo")
+
 	if photoErr != nil && photo == "" {
 		userTemp.PhotoError = "Не выбрана фотография для юзера"
-		fmt.Println("Не выбрана фотография для юзера")
 	}
+
 	if photoErr == nil {
 		defer file.Close()
 	}
@@ -230,51 +231,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	RenderTempl(w, "templates/search.html", tmplData)
-}
-
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	userIDstr := chi.URLParam(r, "userID")
-	user := models.User{}
-	userTemp := UserTemp{IsEdit: true, IsSaveOk: false, Cities: cities}
-
-	userID, err := strconv.ParseInt(userIDstr, 10, 64)
-
-	if err != nil {
-		w.Write([]byte("Юзер не найден"))
-		return
-	}
-	user.ID = userID
-	user.FirstName = r.FormValue("first-name")
-	user.LastName = r.FormValue("last-name")
-	user.CityID, _ = strconv.ParseInt(r.FormValue("city-id"), 10, 64)
-	user.Phone = r.FormValue("phone")
-	user.Info = r.FormValue("info")
-	user.Photo = r.FormValue("photo")
-	file, handler, err := r.FormFile("photo")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	defer file.Close()
-
-	fmt.Println("Size", handler.Size)
-
-	userTemp.Error, err = utils.ValidateUser(user)
-
-	userTemp.User = user
-
-	err = repositories.UpdateUser(user, userID)
-
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	userTemp.User = user
-	userTemp.IsSaveOk = true
-
-	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
