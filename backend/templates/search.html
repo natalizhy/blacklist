@@ -24,16 +24,16 @@
 </form>
 <ul>
     {{range .User}}
-        <div class="user">
-            <label class="image">{{.Photo}}</label>
-            <li><a href="/customers/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.CityID}}</li>
+        <li class="user">
+            <img class="image" src="/assets/users-photo/{{.ID}}{{.Photo}}" alt="photo">
+            <div><a href="/profiles/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.CityID}}</div>
             <div class="dropdown">
-                <button onclick="myFunction()" class="dropbtn">&#8942;</button>
+                <button onclick="myFunction()" onfocusin="myFunction()" class="dropbtn">&#8942;</button>
                 <div id="myDropdown" class="dropdown-content">
-                    <a href="/customers/{{.ID}}/Delete">удалить</a>
+                    <a href="/profiles/{{.ID}}/Delete">удалить</a>
                 </div>
             </div>
-        </div>
+        </li>
     {{end}}
 </ul>
 <script>

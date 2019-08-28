@@ -15,7 +15,7 @@ var userError = map[string]map[string]string{
 	},
 	"LastName": {
 		"required": "Обязательное поле",
-		"alpha":    "Можна использовать только буквы",
+		"cyr":    "Можна использовать только буквы",
 		"min":      "Слишком мало символов",
 	},
 	"Phone": {

@@ -12,7 +12,7 @@
 
 {{if .IsEdit}}
     {{if .IsSaveOk}} <h1 style="color: green">Юзер обновлен успешно</h1> {{end}}
-    <form action="/{{if .User.ID}}customers/{{.User.ID}}/edit{{else}}addNewUser{{end}}" enctype="multipart/form-data"
+    <form action="/{{if .User.ID}}profiles/{{.User.ID}}/edit{{else}}addNewUser{{end}}" enctype="multipart/form-data"
           method="POST">
         <div class="body">
             <div class="left-element">
@@ -21,12 +21,11 @@
                     <div class="u-text-center img photo">
                         {{if .User.ID}}
                             <img class="photo img-bg" src="/assets/users-photo/{{.User.ID}}{{.User.Photo}}" alt="photo">
-                        {{else}}<img class="img photo img-bg" src="">{{.User.Photo}}{{end}}
+                        {{else}}<img class="img photo img-bg">{{.User.Photo}}{{end}}
 
                         <input type="hidden" name="h-photo" value="{{.User.Photo}}"/>
                         <input type="file" name="photo" id="image"
                                accept="image/x-png,image/jpeg,image/jpg,image/png"/>
-
 
                         <div class="update">
                             <img class="dz-icon" src="/assets/img/cloud-storage-download.svg" alt="Face"/>
@@ -110,11 +109,10 @@
                 <li>{{.User.CityID}}</li>
                 <li>{{.User.Phone}}</li>
                 <li>{{.User.Info}}</li>
-                <a class="href" href="/customers/{{.User.ID}}/edit">Редактировать</a>
+                <a class="href" href="/profiles/{{.User.ID}}/edit">Редактировать</a>
             </ul>
         </div>
     </div>
-
 {{end}}
 
 <script>

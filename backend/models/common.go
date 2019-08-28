@@ -9,3 +9,8 @@ type User struct {
 	Info      string `db:"info" validate:"required,max=255,min=5"`
 	Photo     string `db:"photo"`
 }
+
+type Signup struct {
+	Login    string `db:"login" validate:"required,cyr,max=50,min=2"`
+	Password string `db:"password"`
+}

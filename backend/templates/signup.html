@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>signup</title>
+    <link rel="stylesheet" href="/assets/css/styles.css" type="text/css">
+
+</head>
+<body>
+
+<button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Login</button>
+
+<div id="id01" class="modal">
+
+    <form class="modal-content " action="/signup">
+
+        <div class="container">
+            <label for="login"><b>Login</b></label>
+            <input type="text" placeholder="username" name="login" value="{{.Signup.Login}}" required>
+
+            <label for="password"><b>Password</b></label>
+            <input type="password" placeholder="password" name="password" value="{{.Signup.Password}}" required>
+
+            <input id="bt" style="margin-bottom: 10px;" type="submit" value="Login"/>
+
+            <input type="checkbox" checked="checked" name="remember"> Remember me
+        </div>
+
+        <div class="container psw">
+
+            <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    var modal = document.getElementById('id01');
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>

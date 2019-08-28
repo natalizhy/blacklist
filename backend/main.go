@@ -18,18 +18,22 @@ func main() {
 	repositories.InitDB()
 	mux := chi.NewRouter()
 
+	mux.HandleFunc("/signup", use(myHandler, controllers.Signup))
+
 	mux.Get("/", controllers.GetUsers)
 	//mux.Post("/customers/{userID}", controllers.Redirect)
-	mux.Get("/customers/{userID}", controllers.GetUser) // просмотр юзера
-	mux.Post("/customers/{userID}", controllers.GetUser)
-	mux.Get("/customers/{userID}/edit", controllers.GetUpdateUser) // редактирование
-	mux.Post("/customers/{userID}/edit", controllers.AddUser)
-	mux.Get("/customers/{userID}/Delete", controllers.DeleteUser) // удаление юзера
+	mux.Get("/profiles/{userID}", controllers.GetUser) // просмотр юзера
+	mux.Post("/profiles/{userID}", controllers.GetUser)
+	mux.Get("/profiles/{userID}/edit", controllers.GetUpdateUser) // редактирование
+	mux.Post("/profiles/{userID}/edit", controllers.AddUser)
+	mux.Get("/profiles/{userID}/Delete", controllers.DeleteUser) // удаление юзера
+
+	mux.Get("/signup", controllers.SignupForm) // Регистрация
 
 	mux.Get("/addNewUser", controllers.GetNewUser) //
-	mux.Post("/addNewUser", controllers.AddUser) // добавление нового юзера
+	mux.Post("/addNewUser", controllers.AddUser)   // добавление нового юзера
 
-	mux.Get("/searchUser", controllers.Search) //
+	mux.Get("/searchUser", controllers.Search)  //
 	mux.Post("/searchUser", controllers.Search) // поиск юзера
 
 	//mux.Post("/customers", controllers.AddNewUser)
@@ -48,4 +52,18 @@ func main() {
 		return
 	}
 
+}
+
+func use(h http.HandlerFunc, middleware ...func(http.HandlerFunc) http.HandlerFunc) http.HandlerFunc {
+	for _, m := range middleware {
+		h = m(h)
+	}
+
+	return h
+}
+
+func myHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Write([]byte("Authenticated!"))
+	return
 }

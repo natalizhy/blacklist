@@ -24,6 +24,13 @@ type UserTemp struct {
 
 	PhotoError string
 }
+type SignupTemp struct {
+	Signup models.Signup
+}
+type SearchUser struct {
+	UserSearch string
+	User       []models.User
+}
 
 var cities = map[int64]string{
 	1: "Киев",
@@ -33,6 +40,47 @@ var cities = map[int64]string{
 var allowedMimeType = map[string]string{
 	"image/jpeg": ".jpg",
 	"image/png":  ".png",
+}
+
+func SignupForm(w http.ResponseWriter, r *http.Request) {
+
+	signup := models.Signup{}
+	signupTemp := SignupTemp{Signup: signup}
+
+	RenderTempl(w, "templates/signup.html", signupTemp)
+
+	signup.Login = r.FormValue("login")
+	signup.Password = r.FormValue("password")
+
+	if signup.Login != "username" || signup.Password != "password" {
+		http.Error(w, "Not authorized", 401)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	RenderTempl(w, "templates/success.html", signupTemp)
+}
+
+func Signup(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+
+		signup := models.Signup{}
+
+		w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+
+		signup.Login = r.FormValue("login")
+		signup.Password = r.FormValue("password")
+
+		if signup.Login != "username" || signup.Password != "password" {
+			http.Error(w, "Not authorized", 401)
+			return
+		}
+
+		h.ServeHTTP(w, r)
+		return
+	}
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -54,14 +102,14 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.ParseInt(userIDstr, 10, 64)
 
 	if err != nil {
-		w.Write([]byte("Юзер не найден"))
+		w.Write([]byte("Профиль не найден"))
 		return
 	}
 
 	user, err = repositories.GetUserById(userID)
 
 	if err != nil {
-		w.Write([]byte("Не могу выбрать юзера из базы"))
+		w.Write([]byte("Не могу выбрать профиль из базы"))
 		return
 	}
 
@@ -151,7 +199,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 			_ = SavePhoto(userID, file, user.Photo)
 		}
 
-		http.Redirect(w, r, "/customers/"+strconv.FormatInt(userID, 10), http.StatusSeeOther)
+		http.Redirect(w, r, "/profiles/"+strconv.FormatInt(userID, 10), http.StatusSeeOther)
 		return
 	}
 
@@ -212,22 +260,13 @@ func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func Search(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.FormValue("search"))
 	userSearch := r.FormValue("search")
-
 	user, err := repositories.Search(userSearch)
+	tmplData := SearchUser{UserSearch: userSearch, User: user}
 
 	if err != nil {
 		w.Write([]byte("Юзер не найден"))
 		return
-	}
-
-	tmplData := struct {
-		UserSearch string
-		User       []models.User
-	}{
-		UserSearch: userSearch,
-		User:       user,
 	}
 
 	RenderTempl(w, "templates/search.html", tmplData)
