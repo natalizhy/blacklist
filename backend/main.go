@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
@@ -11,14 +10,14 @@ import (
 	"github.com/natalizhy/blacklist/backend/repositories"
 )
 
-var database *sql.DB
-
 func main() {
 
 	repositories.InitDB()
 	mux := chi.NewRouter()
 
-	mux.HandleFunc("/signup", use(myHandler, controllers.Signup))
+	mux.Use(New("MyRealm", map[string][]string{
+		"bob": {"password1", "password2"},
+	}))
 
 	mux.Get("/", controllers.GetUsers)
 	//mux.Post("/customers/{userID}", controllers.Redirect)
@@ -27,8 +26,6 @@ func main() {
 	mux.Get("/profiles/{userID}/edit", controllers.GetUpdateUser) // редактирование
 	mux.Post("/profiles/{userID}/edit", controllers.AddUser)
 	mux.Get("/profiles/{userID}/Delete", controllers.DeleteUser) // удаление юзера
-
-	mux.Get("/signup", controllers.SignupForm) // Регистрация
 
 	mux.Get("/addNewUser", controllers.GetNewUser) //
 	mux.Post("/addNewUser", controllers.AddUser)   // добавление нового юзера
@@ -54,16 +51,34 @@ func main() {
 
 }
 
-func use(h http.HandlerFunc, middleware ...func(http.HandlerFunc) http.HandlerFunc) http.HandlerFunc {
-	for _, m := range middleware {
-		h = m(h)
-	}
+func New(realm string, credentials map[string][]string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			username, password, ok := r.BasicAuth()
+			if !ok {
+				unauthorized(w, realm)
+				return
+			}
 
-	return h
+			validPasswords, userFound := credentials[username]
+			if !userFound {
+				unauthorized(w, realm)
+				return
+			}
+
+			for _, validPassword := range validPasswords {
+				if password == validPassword {
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
+
+			unauthorized(w, realm)
+		})
+	}
 }
 
-func myHandler(w http.ResponseWriter, r *http.Request) {
-
-	w.Write([]byte("Authenticated!"))
-	return
+func unauthorized(w http.ResponseWriter, realm string) {
+	w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, realm))
+	w.WriteHeader(http.StatusUnauthorized)
 }
