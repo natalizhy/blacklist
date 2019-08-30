@@ -15,26 +15,13 @@ func main() {
 	repositories.InitDB()
 	mux := chi.NewRouter()
 
-	mux.Use(New("MyRealm", map[string][]string{
-		"bob": {"password1", "password2"},
-	}))
+	mux.Mount("/", adminRouter()) // проверка доступа
 
-	mux.Get("/", controllers.GetUsers)
-	//mux.Post("/customers/{userID}", controllers.Redirect)
+	////mux.Post("/customers/{userID}", controllers.Redirect)
 	mux.Get("/profiles/{userID}", controllers.GetUser) // просмотр юзера
-	mux.Post("/profiles/{userID}", controllers.GetUser)
-	mux.Get("/profiles/{userID}/edit", controllers.GetUpdateUser) // редактирование
-	mux.Post("/profiles/{userID}/edit", controllers.AddUser)
-	mux.Get("/profiles/{userID}/Delete", controllers.DeleteUser) // удаление юзера
-
-	mux.Get("/addNewUser", controllers.GetNewUser) //
-	mux.Post("/addNewUser", controllers.AddUser)   // добавление нового юзера
 
 	mux.Get("/searchUser", controllers.Search)  //
 	mux.Post("/searchUser", controllers.Search) // поиск юзера
-
-	//mux.Post("/customers", controllers.AddNewUser)
-	//mux.Post("/", controllers.AddNewUser)
 
 	fileHandle := http.FileServer(http.Dir(".")).ServeHTTP
 
@@ -49,6 +36,28 @@ func main() {
 		return
 	}
 
+}
+
+func adminRouter() http.Handler {
+	mux := chi.NewRouter()
+
+	mux.Use(New("MyRealm", map[string][]string{
+		"bob": {"password1", "password2"},
+	}))
+
+	mux.Get("/", controllers.GetUsers)
+
+	mux.Post("/profiles/{userID}", controllers.GetUser)
+
+	mux.Get("/profiles/{userID}/edit", controllers.GetUpdateUser) // редактирование
+	mux.Post("/profiles/{userID}/edit", controllers.AddUser)
+
+	mux.Get("/profiles/{userID}/Delete", controllers.DeleteUser) // удаление юзера
+
+	mux.Get("/addNewUser", controllers.GetNewUser) //
+	mux.Post("/addNewUser", controllers.AddUser) // добавление нового профиля
+
+	return mux
 }
 
 func New(realm string, credentials map[string][]string) func(http.Handler) http.Handler {

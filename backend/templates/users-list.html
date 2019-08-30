@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title></title>
+    <title>Profiles</title>
     <link href="/assets/css/styles.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -16,7 +16,7 @@
 <ul>
     {{range .}}
         <li class="user">
-                <img class="image" src="/assets/users-photo/{{.ID}}{{.Photo}}" alt="photo">
+            <img class="image" src="/assets/users-photo/{{.ID}}{{.Photo}}" alt="photo">
             <div><a href="/profiles/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.CityID}}</div>
             <div class="dropdown">
                 <button onclick="myFunction()" onfocusin="myFunction()" class="dropbtn">&#8942;</button>
@@ -29,7 +29,7 @@
 </ul>
 <script>
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target.matches('.dropbtn')) {
             var dropbuttons = document.getElementsByClassName("dropbtn");
             for (var i = 0; i < dropbuttons.length; i++) {
@@ -44,7 +44,7 @@
 
     var modal = document.getElementById('user');
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target == modal) {
             modal.style.display = "none";
         }
