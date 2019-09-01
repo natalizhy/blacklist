@@ -5,26 +5,6 @@ import (
 	"github.com/natalizhy/blacklist/backend/models"
 )
 
-func GetUsers() (users []models.User, err error) {
-	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `city_id`, `phone`, `info`, `photo` " +
-		"FROM `profiles` " +
-		"WHERE `status`=1 " +
-		"ORDER BY id DESC")
-
-	if err != nil {
-		return
-	}
-
-	for rows.Next() {
-		user := models.User{}
-		_ = rows.StructScan(&user)
-
-		users = append(users, user)
-	}
-
-	return
-}
-
 func GetUserById(userID int64) (user models.User, err error) {
 	result := DB.QueryRowx("SELECT `id`, `first_name`, `last_name`, `city_id`, `phone`, `info`, `photo` "+
 		"FROM `profiles` WHERE `id`=?", userID)

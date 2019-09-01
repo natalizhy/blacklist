@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/go-chi/chi"
-	"net/http"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/natalizhy/blacklist/backend/controllers"
 	"github.com/natalizhy/blacklist/backend/repositories"
+	"net/http"
 )
 
 func main() {
@@ -17,11 +16,10 @@ func main() {
 
 	mux.Mount("/", adminRouter()) // проверка доступа
 
-	////mux.Post("/customers/{userID}", controllers.Redirect)
 	mux.Get("/profiles/{userID}", controllers.GetUser) // просмотр юзера
 
-	mux.Get("/searchUser", controllers.Search)  //
-	mux.Post("/searchUser", controllers.Search) // поиск юзера
+	mux.Get("/", controllers.Search)  // главная страница
+	mux.Post("/", controllers.Search) // поиск юзера
 
 	fileHandle := http.FileServer(http.Dir(".")).ServeHTTP
 
@@ -35,7 +33,6 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
 }
 
 func adminRouter() http.Handler {
@@ -45,8 +42,6 @@ func adminRouter() http.Handler {
 		"bob": {"password1", "password2"},
 	}))
 
-	mux.Get("/", controllers.GetUsers)
-
 	mux.Post("/profiles/{userID}", controllers.GetUser)
 
 	mux.Get("/profiles/{userID}/edit", controllers.GetUpdateUser) // редактирование
@@ -55,7 +50,7 @@ func adminRouter() http.Handler {
 	mux.Get("/profiles/{userID}/Delete", controllers.DeleteUser) // удаление юзера
 
 	mux.Get("/addNewUser", controllers.GetNewUser) //
-	mux.Post("/addNewUser", controllers.AddUser) // добавление нового профиля
+	mux.Post("/addNewUser", controllers.AddUser)   // добавление нового профиля
 
 	return mux
 }
@@ -90,4 +85,5 @@ func New(realm string, credentials map[string][]string) func(http.Handler) http.
 func unauthorized(w http.ResponseWriter, realm string) {
 	w.Header().Add("WWW-Authenticate", fmt.Sprintf(`Basic realm="%s"`, realm))
 	w.WriteHeader(http.StatusUnauthorized)
+	http.Error(w, "Доступ ограничен", 401)
 }

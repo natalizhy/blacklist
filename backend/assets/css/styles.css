@@ -111,7 +111,7 @@ ul {
 }
 
 .left-element {
-    padding-right: 50px;
+    padding-right: 30px;
 }
 
 .u-text-center {
@@ -249,4 +249,44 @@ ul {
 
 .show + .dropdown-content {
     display: block;
+}
+
+/*search icon*/
+
+.icon {
+    position: absolute;
+    top: 43%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    color: #ced0da;
+    font-size: 1.125rem;
+    padding-left: 10px;
+}
+
+.fa .fa-search{
+    position: absolute;
+    top: 50%;
+    margin-left: 17px;
+    margin-top: 17px;
+    z-index: 1;
+    color: #4f5b66;
+}
+
+.ne {
+    padding: 16em 10em;
+    display: block;
+}
+
+.input-search {
+    padding-left: 30px;
+    border-radius: 40px;
+    width: 250px;
+}
+
+.input-search:focus {
+    border-radius: 40px;
+}
+
+.icon.top {
+    top: 8.4%;
 }

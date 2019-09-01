@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/natalizhy/blacklist/backend/models"
@@ -12,7 +13,9 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"strconv"
+	"time"
 )
 
 type UserTemp struct {
@@ -27,6 +30,7 @@ type UserTemp struct {
 
 type SearchUser struct {
 	UserSearch string
+	ReCaptcha  string
 	User       []models.User
 }
 
@@ -40,15 +44,11 @@ var allowedMimeType = map[string]string{
 	"image/png":  ".png",
 }
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := repositories.GetUsers()
-
-	if err != nil {
-		w.Write([]byte("Юзеры не найден"))
-		return
-	}
-
-	RenderTempl(w, "templates/users-list.html", users)
+type JSONAPIResponse struct {
+	Success     bool      `json:"success"`
+	ChallengeTS time.Time `json:"challenge_ts"` // timestamp of the challenge load (ISO format yyyy-MM-dd'T'HH:mm:ssZZ)
+	Hostname    string    `json:"hostname"`     // the hostname of the site where the reCAPTCHA was solved
+	ErrorCodes  []int     `json:"error-codes"`  //optional
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -219,14 +219,57 @@ func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
 func Search(w http.ResponseWriter, r *http.Request) {
 	userSearch := r.FormValue("search")
 	user, err := repositories.Search(userSearch)
-	tmplData := SearchUser{UserSearch: userSearch, User: user}
+	response := r.FormValue("recaptcha")
+	fmt.Println(response)
+
+	tmplData := SearchUser{UserSearch: userSearch, User: user, ReCaptcha: response}
+
+	fmt.Println("g-recaptcha-response : ", response)
+
+	if response == "" {
+		//http.Redirect(w, r, "/", 301)
+		fmt.Println("false")
+		return
+	}
+
+	remoteip := "176.38.148.28"
+
+	fmt.Println("remote ip : ", remoteip)
+
+	secret := "6NepjAsGBBABBN7_Qy9yfzShcKmc70X2kXQyX1WO"
+	postURL := "https://www.google.com/recaptcha/api/siteverify"
+
+	postStr := url.Values{"secret": {secret}, "response": {response}, "remoteip": {remoteip}}
+
+	responsePost, err := http.PostForm(postURL, postStr)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer responsePost.Body.Close()
+	body, err := ioutil.ReadAll(responsePost.Body)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var APIResp JSONAPIResponse
+
+	json.Unmarshal(body, &APIResp)
+	fmt.Println(APIResp)
+
+	//w.Header().Set("Content-Type", "application/json")
+	//w.Write([]byte(body))
 
 	if err != nil {
 		w.Write([]byte("Юзер не найден"))
 		return
 	}
 
-	RenderTempl(w, "templates/search.html", tmplData)
+	RenderTempl(w, "templates/users-list.html", tmplData)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
