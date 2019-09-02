@@ -30,7 +30,6 @@ type UserTemp struct {
 
 type SearchUser struct {
 	UserSearch string
-	ReCaptcha  string
 	User       []models.User
 }
 
@@ -219,16 +218,13 @@ func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
 func Search(w http.ResponseWriter, r *http.Request) {
 	userSearch := r.FormValue("search")
 	user, err := repositories.Search(userSearch)
-	response := r.FormValue("recaptcha")
-	fmt.Println(response)
-
-	tmplData := SearchUser{UserSearch: userSearch, User: user, ReCaptcha: response}
+	response := r.FormValue("g-recaptcha-response")
+	tmplData := SearchUser{UserSearch: userSearch, User: user}
 
 	fmt.Println("g-recaptcha-response : ", response)
 
 	if response == "" {
-		//http.Redirect(w, r, "/", 301)
-		fmt.Println("false")
+		http.Redirect(w, r, "/", 301)
 		return
 	}
 
@@ -236,7 +232,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("remote ip : ", remoteip)
 
-	secret := "6NepjAsGBBABBN7_Qy9yfzShcKmc70X2kXQyX1WO"
+	secret := "6LcGMLYUAAAAAO7SPd_o6HjAqpHe_VH4CrX5kA3d"
 	postURL := "https://www.google.com/recaptcha/api/siteverify"
 
 	postStr := url.Values{"secret": {secret}, "response": {response}, "remoteip": {remoteip}}
