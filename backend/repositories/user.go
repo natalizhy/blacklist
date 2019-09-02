@@ -45,7 +45,7 @@ func AddUser(user models.User) (newUserId int64, err error) {
 }
 
 func Search(user string) (users []models.User, err error) {
-	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `city_id`, `photo` "+
+	rows, err := DB.Queryx("SELECT `id`, `first_name`, `last_name`, `phone`, `photo` "+
 		"FROM profiles "+
 		"WHERE status=1 "+
 		"AND ("+

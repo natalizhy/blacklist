@@ -106,7 +106,7 @@
             <ul class="list">
                 <li>{{.User.FirstName}}</li>
                 <li>{{.User.LastName}}</li>
-                <li>{{.User.CityID}}</li>
+                <li>{{index .Cities .User.CityID}}</li>
                 <li>{{.User.Phone}}</li>
                 <li>{{.User.Info}}</li>
                 <a class="href" href="/profiles/{{.User.ID}}/edit">Редактировать</a>

@@ -18,7 +18,7 @@ func main() {
 
 	mux.Get("/profiles/{userID}", controllers.GetUser) // просмотр юзера
 
-	mux.Get("/", controllers.Search)  // главная страница
+	mux.Get("/", controllers.SearchGet)  // главная страница
 	mux.Post("/", controllers.Search) // поиск юзера
 
 	fileHandle := http.FileServer(http.Dir(".")).ServeHTTP

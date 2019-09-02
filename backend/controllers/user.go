@@ -38,6 +38,7 @@ var cities = map[int64]string{
 	2: "Харков",
 	3: "Одесса",
 }
+
 var allowedMimeType = map[string]string{
 	"image/jpeg": ".jpg",
 	"image/png":  ".png",
@@ -45,9 +46,9 @@ var allowedMimeType = map[string]string{
 
 type JSONAPIResponse struct {
 	Success     bool      `json:"success"`
-	ChallengeTS time.Time `json:"challenge_ts"` // timestamp of the challenge load (ISO format yyyy-MM-dd'T'HH:mm:ssZZ)
-	Hostname    string    `json:"hostname"`     // the hostname of the site where the reCAPTCHA was solved
-	ErrorCodes  []int     `json:"error-codes"`  //optional
+	ChallengeTS time.Time `json:"challenge_ts"`
+	Hostname    string    `json:"hostname"`
+	ErrorCodes  []int     `json:"error-codes"`
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +71,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userTemp.User = user
-
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
@@ -215,6 +215,19 @@ func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
+func SearchGet(w http.ResponseWriter, r *http.Request) {
+	userSearch := r.FormValue("search")
+	user, err := repositories.Search(userSearch)
+	tmplData := SearchUser{UserSearch: userSearch, User: user}
+
+	if err != nil {
+		w.Write([]byte("Юзеры не найден"))
+		return
+	}
+
+	RenderTempl(w, "templates/users-list.html", tmplData)
+}
+
 func Search(w http.ResponseWriter, r *http.Request) {
 	userSearch := r.FormValue("search")
 	user, err := repositories.Search(userSearch)
@@ -256,9 +269,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(body, &APIResp)
 	fmt.Println(APIResp)
-
-	//w.Header().Set("Content-Type", "application/json")
-	//w.Write([]byte(body))
 
 	if err != nil {
 		w.Write([]byte("Юзер не найден"))
