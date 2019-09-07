@@ -23,9 +23,13 @@
                             <img class="photo img-bg" src="/assets/users-photo/{{.User.ID}}{{.User.Photo}}" alt="photo">
                         {{else}}<img class="img photo img-bg">{{.User.Photo}}{{end}}
 
-                        <input type="hidden" name="h-photo" value="{{.User.Photo}}"/>
+                        <input type="hidden" name="h-photo" value="{{.User.Photo}}" /><br>
+                        <input type="hidden" name="h-photo" value="{{.User.Photo}}" /><br>
+                        <input type="hidden" name="h-photo" value="{{.User.Photo}}" />
+
+
                         <input type="file" name="photo" id="image"
-                               accept="image/x-png,image/jpeg,image/jpg,image/png"/>
+                               accept="image/x-png,image/jpeg,image/jpg,image/png" />
 
                         <div class="update">
                             <img class="dz-icon" src="/assets/img/cloud-storage-download.svg" alt="Face"/>
@@ -98,7 +102,7 @@
     <div class="body">
         <div class="left-element">
             <label for="image" class="img photo" style="overflow: hidden;">
-                <img class="photo img-bg" style="height: 300px;" src="/assets/users-photo/{{.User.ID}}{{.User.Photo}}"
+                <img class="photo img-bg" style="height: 300px;" src="/assets/users-photo/{{.User.Photo}}"
                      alt="photo">
             </label>
         </div>
@@ -116,13 +120,13 @@
 {{end}}
 
 <script>
-    console.log({{.User.ID}}{{.User.Photo}})
+    console.log({{.User.ID}}{{.User.Photo}});
     document.querySelector("input").addEventListener("change", function () {
         if (this.files[0]) {
             var fr = new FileReader();
 
             fr.addEventListener("load", function () {
-                document.querySelector(".update").classList.add('hoverable')
+                document.querySelector(".update").classList.add('hoverable');
                 document.querySelector(".img-bg").style.backgroundImage = `url("${fr.result}")`;
             }, false);
 

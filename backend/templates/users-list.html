@@ -10,14 +10,14 @@
 </head>
 <body>
 
-<a href="/addNewUser" style="float: right; ">Добавить юзера</a>&nbsp;&nbsp;&nbsp;
+<a href="/addNewUser" style="float: right; ">Добавить юзера</a>&nbsp
 
 <form action="/" method="POST">
 
     {{if ne .UserSearch ""}}
     <div class="body" style="display: block;">
         {{else}}
-        <div class="body ne" id="btn">
+        <div class="body ne">
             {{end}}
             <div style="display: flex">
                 <div class="left-element">
@@ -39,8 +39,8 @@
 
             <br>
             <div style="margin: 0px 41px;">
-                    <div class="g-recaptcha"
-                         data-sitekey="6LcGMLYUAAAAAN3SZRA0GFLb0qTT0G-lnqRqMJjo" data-callback="recaptchaCallback"></div>
+                <div class="g-recaptcha"
+                     data-sitekey="6LcGMLYUAAAAAN3SZRA0GFLb0qTT0G-lnqRqMJjo" data-callback="recaptchaCallback"></div>
             </div>
         </div>
     </div>
@@ -79,17 +79,16 @@
             }
             event.target.classList.toggle("show");
         }
-    }
+    };
 
     var modal = document.getElementById('user');
 
-    var recaptchaCallback = function() {
+    var recaptchaCallback = function () {
         $('#bt').css('background-color', '#2196F3');
         $('#bt').removeAttr('disabled');
     };
 
 </script>
-
 
 </body>
 </html>

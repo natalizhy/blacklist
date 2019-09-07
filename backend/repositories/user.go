@@ -72,7 +72,7 @@ func DeleteUser(user models.User, userID int64) (err error) {
 	result := DB.QueryRowx("UPDATE `profiles` SET status=0 WHERE id=?", userID)
 
 	err = result.StructScan(&user)
-
+	fmt.Println(&user)
 	fmt.Println("Delete user")
 
 	return

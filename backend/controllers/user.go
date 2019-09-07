@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
@@ -14,7 +16,9 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -50,6 +54,9 @@ type JSONAPIResponse struct {
 	Hostname    string    `json:"hostname"`
 	ErrorCodes  []int     `json:"error-codes"`
 }
+
+var rand uint32
+var randmu sync.Mutex
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	userIDstr := chi.URLParam(r, "userID")
@@ -94,9 +101,11 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	user.Phone = r.FormValue("phone")
 	user.Info = r.FormValue("info")
 	photo := r.FormValue("h-photo")
+	photo2 := r.FormValue("h-photo2")
+	photo3 := r.FormValue("h-photo3")
 
 	file, _, photoErr := r.FormFile("photo")
-
+	fmt.Println(photo, photo2, photo3, file, "+")
 	if photoErr != nil && photo == "" {
 		userTemp.PhotoError = "Не выбрана фотография для юзера"
 	}
@@ -129,6 +138,8 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 			user.Photo = photo
 		}
 
+
+
 		if userIDstr != "" {
 
 			userID, err = strconv.ParseInt(userIDstr, 10, 64)
@@ -154,6 +165,44 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		if photoErr == nil {
 			_ = SavePhoto(userID, file, user.Photo)
 		}
+
+		hash, err := Hash(userID, user.Photo)
+
+		if err != nil {
+			w.Write([]byte("Ошибка с хешем"))
+			return
+		}
+
+		File(userID, hash, user.Photo)
+
+		err = os.Rename("./assets/users-photo/"+strconv.FormatInt(userID, 10)+user.Photo, hash + user.Photo)
+
+		fmt.Println(err)
+
+		user.Photo = hash + user.Photo
+		if err != nil {
+			w.Write([]byte("Ошибка записи в бд"))
+			return
+		}
+		fmt.Println(user.Photo)
+
+		repositories.UpdateUserPhoto(user, userID)
+
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(photo)
+		slcD := map[string]string{"profile": user.Photo, "doc": user.Photo}
+		slcB, err := json.Marshal(slcD)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+
+		fmt.Println(string(slcB))
+
 
 		http.Redirect(w, r, "/profiles/"+strconv.FormatInt(userID, 10), http.StatusSeeOther)
 		return
@@ -185,9 +234,6 @@ func SavePhoto(userID int64, file multipart.File, contentType string) (err error
 
 	err = ioutil.WriteFile("./assets/users-photo/"+strconv.FormatInt(userID, 10)+contentType, data, 0777)
 
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -308,4 +354,47 @@ func RenderTempl(w http.ResponseWriter, tmplName string, data interface{}) {
 	}
 
 	w.Write(body.Bytes())
+}
+
+func Hash(userID int64, contentType string) (string, error) {
+	var returnMD5String string
+
+	file, err := os.Open("./assets/users-photo/" + strconv.FormatInt(userID, 10) + contentType)
+	if err != nil {
+		return returnMD5String, err
+	}
+
+	defer file.Close()
+
+	hash := md5.New()
+
+	if _, err := io.Copy(hash, file); err != nil {
+		return returnMD5String, err
+	}
+
+	hashInBytes := hash.Sum(nil)[:16]
+
+	returnMD5String = hex.EncodeToString(hashInBytes)
+
+	return returnMD5String, nil
+}
+
+func File(userID int64, returnMD5String string, contentType string) (string, error) {
+
+	data, err := ioutil.ReadFile("./assets/users-photo/" + strconv.FormatInt(userID, 10) + contentType)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = ioutil.WriteFile("./assets/users-photo/"+returnMD5String+contentType, data, 0777)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	data1, err := ioutil.ReadFile("./assets/users-photo/"+returnMD5String+contentType)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return string(data1), nil
 }

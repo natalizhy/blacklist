@@ -165,15 +165,6 @@ ul {
     -webkit-appearance: none;
     width: 100%;
 }
-#btn label:checked+input{
-    background-color: aquamarine;
-}
-/*#btn input{*/
-/*    display: none;*/
-/*}*/
-/*#bt #blue {*/
-/*    background-color: #2196F3;*/
-/*}*/
 
 /*profiel*/
 
