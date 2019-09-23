@@ -10,13 +10,18 @@ import (
 	"github.com/natalizhy/blacklist/backend/models"
 	"github.com/natalizhy/blacklist/backend/repositories"
 	"github.com/natalizhy/blacklist/backend/utils"
+	"github.com/nfnt/resize"
 	"html/template"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	"image/png"
 	"io"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -29,6 +34,8 @@ type UserTemp struct {
 	IsEdit   bool
 	IsSaveOk bool
 
+	ListPhotos []models.Photo
+	Photo      models.Photo
 	PhotoError string
 }
 
@@ -60,30 +67,47 @@ var randmu sync.Mutex
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	userIDstr := chi.URLParam(r, "userID")
+
 	user := models.User{}
-	userTemp := UserTemp{IsEdit: false, User: user, Cities: cities}
+	photo := models.Photo{}
+	photos := []models.Photo{}
+
+	userTemp := UserTemp{User: user, Cities: cities, Photo: photo}
+
+	IsEdit := chi.URLParam(r, "mode") == "edit"
+	if IsEdit == true {
+		userTemp.IsEdit = true
+	} else {
+		userTemp.IsEdit = false
+	}
 
 	userID, err := strconv.ParseInt(userIDstr, 10, 64)
-
 	if err != nil {
 		w.Write([]byte("Профиль не найден"))
 		return
 	}
 
 	user, err = repositories.GetUserById(userID)
-
 	if err != nil {
 		w.Write([]byte("Не могу выбрать профиль из базы"))
 		return
 	}
-
 	userTemp.User = user
+
+	photos, err = repositories.GetPhotoById(userID)
+	if err != nil {
+		fmt.Println("err", err)
+	}
+
+	userTemp.ListPhotos = photos
 	RenderTempl(w, "templates/profile.html", userTemp)
+
 }
 
 func GetNewUser(w http.ResponseWriter, r *http.Request) {
 	user := models.User{ID: 0}
-	userTemp := UserTemp{IsEdit: true, User: user, Cities: cities}
+	photo := models.Photo{ID: 0}
+	userTemp := UserTemp{IsEdit: true, User: user, Cities: cities, Photo: photo}
 
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
@@ -91,54 +115,42 @@ func GetNewUser(w http.ResponseWriter, r *http.Request) {
 func AddUser(w http.ResponseWriter, r *http.Request) {
 	userIDstr := chi.URLParam(r, "userID")
 	user := models.User{}
-	userTemp := UserTemp{IsEdit: true, Cities: cities, PhotoError: ""}
+	photo := models.Photo{}
+	userTemp := UserTemp{IsEdit: true, Cities: cities, PhotoError: "", Photo: photo}
 	var err error
 	var userID int64
+	var photoID int64
 
 	user.FirstName = r.FormValue("first-name")
 	user.LastName = r.FormValue("last-name")
 	user.CityID, _ = strconv.ParseInt(r.FormValue("city-id"), 10, 64)
 	user.Phone = r.FormValue("phone")
 	user.Info = r.FormValue("info")
-	photo := r.FormValue("h-photo")
-	photo2 := r.FormValue("h-photo2")
-	photo3 := r.FormValue("h-photo3")
 
-	file, _, photoErr := r.FormFile("photo")
-	fmt.Println(photo, photo2, photo3, file, "+")
-	if photoErr != nil && photo == "" {
-		userTemp.PhotoError = "Не выбрана фотография для юзера"
+	files := r.MultipartForm.File["photo"]
+	if files == nil {
+		userTemp.PhotoError = "Не выбрана фотография"
 	}
 
-	if photoErr == nil {
-		defer file.Close()
+	if userIDstr != "" {
+		userTemp.PhotoError = ""
 	}
 
-	userTemp.Error, err = utils.ValidateUser(user)
+	userTemp.Error, err = utils.ValidateUser(user, photo)
+	if err != nil {
+		w.Write([]byte("err"))
+		return
+	}
 
 	userTemp.User = user
 
-	if err == nil || userTemp.PhotoError == "" {
+	usph, err := AddUserPhoto(w, r, userTemp)
+	if err != nil {
+		w.Write([]byte("err"))
+		return
+	}
 
-		if photoErr == nil {
-
-			ct, err := getContentType(file)
-
-			if err != nil {
-				w.Write([]byte("err"))
-				return
-			}
-
-			if _, ok := allowedMimeType[ct]; ok {
-				user.Photo = allowedMimeType[ct]
-			}
-		}
-
-		if photoErr != nil {
-			user.Photo = photo
-		}
-
-
+	if userTemp.PhotoError == "" {
 
 		if userIDstr != "" {
 
@@ -149,60 +161,36 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			err = repositories.UpdateUser(user, userID)
-
-			if photo != "" {
-				repositories.UpdateUserPhoto(user, userID)
+			if err != nil {
+				fmt.Println(err)
+				w.Write([]byte("Юзер не добавлен"))
+				return
 			}
 
 		} else {
 			userID, err = repositories.AddUser(user)
+
 			if err != nil {
+				fmt.Println(err)
 				w.Write([]byte("Юзер не добавлен"))
 				return
 			}
 		}
 
-		if photoErr == nil {
-			_ = SavePhoto(userID, file, user.Photo)
-		}
-
-		hash, err := Hash(userID, user.Photo)
-
-		if err != nil {
-			w.Write([]byte("Ошибка с хешем"))
-			return
-		}
-
-		File(userID, hash, user.Photo)
-
-		err = os.Rename("./assets/users-photo/"+strconv.FormatInt(userID, 10)+user.Photo, hash + user.Photo)
-
-		fmt.Println(err)
-
-		user.Photo = hash + user.Photo
-		if err != nil {
-			w.Write([]byte("Ошибка записи в бд"))
-			return
-		}
-		fmt.Println(user.Photo)
-
-		repositories.UpdateUserPhoto(user, userID)
-
-
+		photoID, err = RangeUserPhoto(w, photo, userID, usph)
 		if err != nil {
 			fmt.Println(err)
+			w.Write([]byte("Главное фото для юзера не выбрано"))
 			return
 		}
+		user.PhotoID = photoID
 
-		fmt.Println(photo)
-		slcD := map[string]string{"profile": user.Photo, "doc": user.Photo}
-		slcB, err := json.Marshal(slcD)
-		if err != nil {
-			fmt.Println("error:", err)
+		photoIDup := repositories.UpdateUserPhoto(user, userID)
+		if photoIDup != nil {
+			fmt.Println(photoIDup)
 		}
 
-		fmt.Println(string(slcB))
-
+		fmt.Println(user.PhotoID, photoIDup, "done")
 
 		http.Redirect(w, r, "/profiles/"+strconv.FormatInt(userID, 10), http.StatusSeeOther)
 		return
@@ -211,62 +199,12 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
-func getContentType(file multipart.File) (contentType string, err error) {
-	buffer := make([]byte, 512)
-	_, err = file.Read(buffer)
-	if err != nil {
-		fmt.Println(23, err)
-	}
-
-	contentType = http.DetectContentType(buffer)
-
-	_, err = file.Seek(0, 0)
-
-	return
-}
-
-func SavePhoto(userID int64, file multipart.File, contentType string) (err error) {
-
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		return
-	}
-
-	err = ioutil.WriteFile("./assets/users-photo/"+strconv.FormatInt(userID, 10)+contentType, data, 0777)
-
-	return
-}
-
-func GetUpdateUser(w http.ResponseWriter, r *http.Request) {
-	userIDstr := chi.URLParam(r, "userID")
-	user := models.User{}
-	userTemp := UserTemp{IsEdit: true, User: user, Cities: cities}
-
-	userID, err := strconv.ParseInt(userIDstr, 10, 64)
-
-	if err != nil {
-		w.Write([]byte("Юзер не найден"))
-		return
-	}
-
-	user, err = repositories.GetUserById(userID)
-
-	if err != nil {
-		w.Write([]byte("Не могу выбрать юзера из базы"))
-		return
-	}
-
-	userTemp.User = user
-
-	RenderTempl(w, "templates/profile.html", userTemp)
-}
-
-func SearchGet(w http.ResponseWriter, r *http.Request) {
+func SearchForm(w http.ResponseWriter, r *http.Request) {
 	userSearch := r.FormValue("search")
 	user, err := repositories.Search(userSearch)
 	tmplData := SearchUser{UserSearch: userSearch, User: user}
-
 	if err != nil {
+		fmt.Println(err)
 		w.Write([]byte("Юзеры не найден"))
 		return
 	}
@@ -274,7 +212,7 @@ func SearchGet(w http.ResponseWriter, r *http.Request) {
 	RenderTempl(w, "templates/users-list.html", tmplData)
 }
 
-func Search(w http.ResponseWriter, r *http.Request) {
+func SearchResult(w http.ResponseWriter, r *http.Request) {
 	userSearch := r.FormValue("search")
 	user, err := repositories.Search(userSearch)
 	response := r.FormValue("g-recaptcha-response")
@@ -288,8 +226,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	remoteip := "176.38.148.28"
-
-	fmt.Println("remote ip : ", remoteip)
 
 	secret := "6LcGMLYUAAAAAO7SPd_o6HjAqpHe_VH4CrX5kA3d"
 	postURL := "https://www.google.com/recaptcha/api/siteverify"
@@ -326,6 +262,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userIDstr := chi.URLParam(r, "userID")
+
 	user := models.User{}
 
 	userID, err := strconv.ParseInt(userIDstr, 10, 64)
@@ -334,6 +271,26 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+}
+
+func DeleteUserPhoto(w http.ResponseWriter, r *http.Request) {
+	photoIDstr := chi.URLParam(r, "photoID")
+
+	photo := models.Photo{}
+	fmt.Println(photo.UserID)
+
+	photoID, err := strconv.ParseInt(photoIDstr, 10, 64)
+	fmt.Println(err, photoID, photo.UserID)
+
+	userID, err := repositories.GetUserID(photoID)
+	fmt.Println(err, userID, photo.UserID)
+
+	err = repositories.DeleteUserPhoto(photo, photoID)
+
+	if err != nil {
+		http.Redirect(w, r, "/profiles/"+strconv.FormatInt(userID, 10), http.StatusTemporaryRedirect)
 		return
 	}
 }
@@ -356,19 +313,19 @@ func RenderTempl(w http.ResponseWriter, tmplName string, data interface{}) {
 	w.Write(body.Bytes())
 }
 
-func Hash(userID int64, contentType string) (string, error) {
+func Hash(path string) (string, error) {
 	var returnMD5String string
 
-	file, err := os.Open("./assets/users-photo/" + strconv.FormatInt(userID, 10) + contentType)
+	files, err := os.Open(path)
 	if err != nil {
 		return returnMD5String, err
 	}
 
-	defer file.Close()
+	defer files.Close()
 
 	hash := md5.New()
 
-	if _, err := io.Copy(hash, file); err != nil {
+	if _, err := io.Copy(hash, files); err != nil {
 		return returnMD5String, err
 	}
 
@@ -379,22 +336,82 @@ func Hash(userID int64, contentType string) (string, error) {
 	return returnMD5String, nil
 }
 
-func File(userID int64, returnMD5String string, contentType string) (string, error) {
+func AddUserPhoto(w http.ResponseWriter, r *http.Request, userTemp UserTemp) (list []string, err error) {
+	files := r.MultipartForm.File["photo"]
 
-	data, err := ioutil.ReadFile("./assets/users-photo/" + strconv.FormatInt(userID, 10) + contentType)
-	if err != nil {
-		fmt.Println(err)
+	for i := range files {
+
+		file, err := files[i].Open()
+		fmt.Println(file, "file")
+		if err != nil {
+			fmt.Fprintln(w, err)
+			userTemp.PhotoError = "Не выбрана фотография для юзера"
+		}
+
+		imgDecode, format, err := image.Decode(file)
+		fmt.Println(file, format, err, "imgDecode")
+
+		if err != nil {
+			fmt.Println(err, "err")
+			fmt.Fprintln(w, err)
+			userTemp.PhotoError = "Не раскодировалось"
+		}
+
+		defer file.Close()
+
+		//imgDecode = resize.Resize(220, 300, imgDecode, resize.Bicubic) // <-- изменение размера картинки
+		imgDecode = resize.Thumbnail(220, 300, imgDecode, resize.Bicubic) // <-- изменение размера картинки
+
+		tmpFileName := fmt.Sprintf("%x.tmp", time.Now().UnixNano())
+		tmpFilePath := "./assets/users-photo/" + tmpFileName
+		pathRes := "./assets/users-photo/"
+
+		out, err := os.Create(tmpFilePath)
+		if err != nil {
+			fmt.Fprintln(w, err)
+		}
+
+		png.Encode(out, imgDecode)
+
+		defer out.Close()
+
+		if _, err := io.Copy(out, file); err != nil {
+			fmt.Fprintf(w, "Unable to create the file for writing. Check your write access privilege")
+		}
+
+		ext := filepath.Ext(files[i].Filename)
+
+		hash, err := Hash(tmpFilePath)
+		if err != nil {
+			w.Write([]byte("Ошибка с хешем"))
+		}
+
+		err = os.Rename(tmpFilePath, pathRes+hash+ext)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		list = append(list, pathRes+hash+ext)
 	}
+	return
+}
 
-	err = ioutil.WriteFile("./assets/users-photo/"+returnMD5String+contentType, data, 0777)
-	if err != nil {
-		fmt.Println(err)
+func RangeUserPhoto(w http.ResponseWriter, photo models.Photo, userID int64, usph []string) (photoID int64, err error) {
+
+	for _, val := range usph {
+
+		res := val[1:]
+		photo.LinkPhoto = res
+		fmt.Println(photo.LinkPhoto, val, "val")
+
+		photoID, err = repositories.AddUserPhoto(photo, userID)
+
+		fmt.Println(userID, photoID, "ID2")
+		if err != nil {
+			fmt.Println(err)
+			w.Write([]byte("Фотографии не добавлены"))
+			return
+		}
 	}
-
-	data1, err := ioutil.ReadFile("./assets/users-photo/"+returnMD5String+contentType)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	return string(data1), nil
+	return
 }

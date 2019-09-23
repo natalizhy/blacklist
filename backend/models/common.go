@@ -7,5 +7,11 @@ type User struct {
 	CityID    int64  `db:"city_id"`
 	Phone     string `db:"phone" validate:"required,numeric,max=50,min=4"`
 	Info      string `db:"info" validate:"required,max=255,min=5"`
-	Photo     string `db:"photo"`
+	PhotoID   int64  `db:"photoID"`
+	Link      string `db:"linkPhoto"`
+}
+type Photo struct {
+	ID        int64  `db:"id"`
+	UserID    int64  `db:"userID"`
+	LinkPhoto string `db:"linkPhoto"`
 }

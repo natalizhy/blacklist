@@ -50,13 +50,15 @@
 {{if ne .UserSearch ""}}
 <ul>
     {{range .User}}
+
         <li class="user">
-            <img class="image" src="/assets/users-photo/{{.ID}}{{.Photo}}" alt="photo">
+            <img class="image" src="{{.Link}}" alt="photo">
+
             <div><a href="/profiles/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.Phone}}</div>
             <div class="dropdown">
-                <button onclick="myFunction()" onfocusin="myFunction()" class="dropbtn">&#8942;</button>
-                <div id="myDropdown" class="dropdown-content">
-                    <a href="/profiles/{{.ID}}/Delete">удалить</a>
+                <button class="dropbtn toggle-menu-btn">&#8942;</button>
+                <div id="myDropdown" class="dropdown-content" >
+                    <a href="/profiles/{{.ID}}/DeleteUser">удалить</a>
                 </div>
             </div>
         </li>
@@ -66,29 +68,7 @@
 
 <script src='https://www.google.com/recaptcha/api.js'></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
-<script>
-
-    window.onclick = function (event) {
-        if (event.target.matches('.dropbtn')) {
-            var dropbuttons = document.getElementsByClassName("dropbtn");
-            for (var i = 0; i < dropbuttons.length; i++) {
-                var openDropdown = dropbuttons[i];
-                if (openDropdown.classList.contains('show') && !event.target.classList.contains('show')) {
-                    openDropdown.classList.remove('show');
-                }
-            }
-            event.target.classList.toggle("show");
-        }
-    };
-
-    var modal = document.getElementById('user');
-
-    var recaptchaCallback = function () {
-        $('#bt').css('background-color', '#2196F3');
-        $('#bt').removeAttr('disabled');
-    };
-
-</script>
+<script src="/assets/js/script.js"></script>
 
 </body>
 </html>

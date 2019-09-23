@@ -18,8 +18,8 @@ func main() {
 
 	mux.Get("/profiles/{userID}", controllers.GetUser) // просмотр юзера
 
-	mux.Get("/", controllers.SearchGet)  // главная страница
-	mux.Post("/", controllers.Search) // поиск юзера
+	mux.Get("/", controllers.SearchForm)    // главная страница
+	mux.Post("/", controllers.SearchResult) // поиск юзера
 
 	fileHandle := http.FileServer(http.Dir(".")).ServeHTTP
 
@@ -44,10 +44,11 @@ func adminRouter() http.Handler {
 
 	mux.Post("/profiles/{userID}", controllers.GetUser)
 
-	mux.Get("/profiles/{userID}/edit", controllers.GetUpdateUser) // редактирование
-	mux.Post("/profiles/{userID}/edit", controllers.AddUser)
+	mux.Get("/profiles/{userID}/{mode}", controllers.GetUser) // редактирование
+	mux.Post("/profiles/{userID}/{mode}", controllers.AddUser)
 
-	mux.Get("/profiles/{userID}/Delete", controllers.DeleteUser) // удаление юзера
+	mux.Get("/profiles/{userID}/DeleteUser", controllers.DeleteUser) // удаление юзера
+	mux.Get("/profiles/{photoID}/DeletePhoto", controllers.DeleteUserPhoto) // удаление юзера
 
 	mux.Get("/addNewUser", controllers.GetNewUser) //
 	mux.Post("/addNewUser", controllers.AddUser)   // добавление нового профиля

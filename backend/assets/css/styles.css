@@ -93,7 +93,7 @@ ul {
 
 .photo {
     display: flex;
-    position: relative;
+    /*position: relative;*/
     align-items: center;
     justify-content: center;
     background-color: #fff;
@@ -105,7 +105,7 @@ ul {
 }
 
 .img {
-    width: 200px;
+    width: 220px;
     height: 300px;
     overflow: hidden;
 }
@@ -135,7 +135,7 @@ ul {
 .img-bg {
     position: absolute;
     height: 300px;
-    /*width: 200px;*/
+    width: 220px;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -209,18 +209,32 @@ ul {
     width: 60px;
 }
 
-#image {
+.image-user {
     display: none;
 }
 
 .dropdown {
-    padding-left: 170px;
+    padding-left: 120px;
+}
+
+.dropdown-photo {
+    padding-left: 200px;
+    padding-bottom: 276px;
+    position: absolute;
 }
 
 /* Dropdown Button for user*/
 
 .dropbtn {
     background: none;
+    color: black;
+    font-size: 21px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropbtn-photo {
+    /*background: none;*/
     color: black;
     font-size: 21px;
     border: none;
@@ -255,7 +269,7 @@ ul {
 
 .icon {
     position: absolute;
-    top: 43%;
+    /*top: 43%;*/
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
     color: #ced0da;
@@ -272,6 +286,11 @@ ul {
     color: #4f5b66;
 }
 
+.fa {
+    position: absolute;
+    padding-top: 10px;
+}
+
 .ne {
     padding: 16em 10em;
     display: block;
@@ -285,8 +304,4 @@ ul {
 
 .input-search:focus {
     border-radius: 40px;
-}
-
-.icon.top {
-    top: 8.4%;
 }
