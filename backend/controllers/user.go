@@ -40,8 +40,10 @@ type UserTemp struct {
 }
 
 type SearchUser struct {
-	UserSearch string
-	User       []models.User
+	UserSearch   string
+	User         []models.User
+	ReCAPTCHAerr string
+	Mismatch     string
 }
 
 var cities = map[int64]string{
@@ -199,62 +201,58 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	RenderTempl(w, "templates/profile.html", userTemp)
 }
 
-func SearchForm(w http.ResponseWriter, r *http.Request) {
+func Search(w http.ResponseWriter, r *http.Request) {
 	userSearch := r.FormValue("search")
 	user, err := repositories.Search(userSearch)
-	tmplData := SearchUser{UserSearch: userSearch, User: user}
-	if err != nil {
-		fmt.Println(err)
-		w.Write([]byte("Юзеры не найден"))
-		return
+	tmplData := SearchUser{UserSearch: userSearch, User: user, ReCAPTCHAerr: "Докажите, что вы не робот", Mismatch: ""}
+
+	if len(user) == 0 {
+		tmplData.Mismatch = "Ничего по вашему запросу не найдено, возможно в строке поиска вы допустили ошибку"
 	}
-
-	RenderTempl(w, "templates/users-list.html", tmplData)
-}
-
-func SearchResult(w http.ResponseWriter, r *http.Request) {
-	userSearch := r.FormValue("search")
-	user, err := repositories.Search(userSearch)
-	response := r.FormValue("g-recaptcha-response")
-	tmplData := SearchUser{UserSearch: userSearch, User: user}
-
-	fmt.Println("g-recaptcha-response : ", response)
-
-	if response == "" {
-		http.Redirect(w, r, "/", 301)
-		return
-	}
-
-	remoteip := "176.38.148.28"
-
-	secret := "6LcGMLYUAAAAAO7SPd_o6HjAqpHe_VH4CrX5kA3d"
-	postURL := "https://www.google.com/recaptcha/api/siteverify"
-
-	postStr := url.Values{"secret": {secret}, "response": {response}, "remoteip": {remoteip}}
-
-	responsePost, err := http.PostForm(postURL, postStr)
 
 	if err != nil {
 		fmt.Println(err)
+		w.Write([]byte("Профиль не найден"))
 		return
 	}
 
-	defer responsePost.Body.Close()
-	body, err := ioutil.ReadAll(responsePost.Body)
+	if userSearch != "" {
+		response := r.FormValue("g-recaptcha-response")
 
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+		if response == "" {
+			http.Redirect(w, r, "/", 301)
+			return
+		}
 
-	var APIResp JSONAPIResponse
+		remoteip := "176.38.148.28"
 
-	json.Unmarshal(body, &APIResp)
-	fmt.Println(APIResp)
+		secret := "6LcGMLYUAAAAAO7SPd_o6HjAqpHe_VH4CrX5kA3d"
+		postURL := "https://www.google.com/recaptcha/api/siteverify"
 
-	if err != nil {
-		w.Write([]byte("Юзер не найден"))
-		return
+		postStr := url.Values{"secret": {secret}, "response": {response}, "remoteip": {remoteip}}
+
+		responsePost, err := http.PostForm(postURL, postStr)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		defer responsePost.Body.Close()
+
+		body, err := ioutil.ReadAll(responsePost.Body)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		var APIResp JSONAPIResponse
+
+		err = json.Unmarshal(body, &APIResp)
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/", 301)
+			return
+		}
 	}
 
 	RenderTempl(w, "templates/users-list.html", tmplData)

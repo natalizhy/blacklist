@@ -21,4 +21,5 @@ var modal = document.getElementById('user');
 var recaptchaCallback = function () {
     $('#bt').css('background-color', '#2196F3');
     $('#bt').removeAttr('disabled');
+    $('p').hide();
 };

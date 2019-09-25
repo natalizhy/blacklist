@@ -26,7 +26,7 @@
                         <i class="fa fa-search"></i>
                     </span>
                         <label>
-                            <input class="input-search" type="text" name="search" placeholder="Поиск"
+                            <input class="input-search" type="search" name="search" placeholder="Поиск"
                                    value="{{.UserSearch}}">
 
                         </label>
@@ -41,11 +41,19 @@
             <div style="margin: 0px 41px;">
                 <div class="g-recaptcha"
                      data-sitekey="6LcGMLYUAAAAAN3SZRA0GFLb0qTT0G-lnqRqMJjo" data-callback="recaptchaCallback"></div>
+                {{if .ReCAPTCHAerr }}
+                    <p style="font-size: 9px">{{.ReCAPTCHAerr}}</p>
+                {{end}}
             </div>
+
         </div>
     </div>
 
 </form>
+
+{{if .Mismatch}}
+    <p class="mismatch">{{.Mismatch}}</p>
+{{end}}
 
 {{if ne .UserSearch ""}}
 <ul>

@@ -52,7 +52,6 @@ input:focus::-moz-placeholder {
 
 input:focus::-webkit-input-placeholder {
     color: rgb(223, 227, 233);
-
 }
 
 p {
@@ -93,7 +92,6 @@ ul {
 
 .photo {
     display: flex;
-    /*position: relative;*/
     align-items: center;
     justify-content: center;
     background-color: #fff;
@@ -142,6 +140,7 @@ ul {
 }
 
 /*button*/
+
 #bt {
     font-family: Source Sans Pro, sans-serif;
     position: relative;
@@ -166,7 +165,7 @@ ul {
     width: 100%;
 }
 
-/*profiel*/
+/*profile*/
 
 .list {
     padding-top: 20px;
@@ -184,6 +183,16 @@ ul {
     text-decoration: none;
     bottom: 0;
     padding-left: 20px;
+}
+
+/* error search*/
+
+.mismatch {
+    max-width: 386px;
+    display: block;
+    margin-block-start: 1.67em;
+    margin-block-end: 1.67em;
+    color: rgba(0, 0, 0, 0.72);
 }
 
 /*user-list*/
@@ -234,7 +243,6 @@ ul {
 }
 
 .dropbtn-photo {
-    /*background: none;*/
     color: black;
     font-size: 21px;
     border: none;
@@ -269,7 +277,6 @@ ul {
 
 .icon {
     position: absolute;
-    /*top: 43%;*/
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
     color: #ced0da;

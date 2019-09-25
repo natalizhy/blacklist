@@ -81,13 +81,13 @@ func AddUserPhoto(photo models.Photo, newUserId int64) (newUserPhotoId int64, er
 }
 
 func Search(user string) (users []models.User, err error) {
-	rows, err := DB.Queryx("SELECT p.`id`, p.`first_name`, p.`last_name`, p.`phone`, p.`photoID`, f.`linkPhoto` "+
+	rows, err := DB.Queryx("SELECT p.`id`, p.`first_name`, p.`last_name`, p.`phone`, p.`city_id`, p.`photoID`, f.`linkPhoto` "+
 		"FROM profiles AS p, photos AS f "+
 		"WHERE p.status=1 AND p.photoID=f.id "+
 		"AND ("+
 		"p.first_name LIKE concat('%', ?, '%') OR "+
 		"p.last_name LIKE concat('%', ?, '%') OR "+
-		"p.city_id LIKE concat('%', ?, '%')"+
+		"p.phone LIKE concat('%', ?, '%')"+
 		")", user, user, user)
 
 	if err != nil {
@@ -104,6 +104,8 @@ func Search(user string) (users []models.User, err error) {
 		}
 		users = append(users, user)
 	}
+
+	fmt.Println(users, "users")
 
 	return
 }
