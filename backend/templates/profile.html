@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,25 +12,35 @@
 
 {{if .IsEdit}}
     {{if .IsSaveOk}} <h1 style="color: green">Юзер обновлен успешно</h1> {{end}}
+
+
     <form action="/{{if .User.ID}}profiles/{{.User.ID}}/edit{{else}}addNewUser{{end}}"
           enctype="multipart/form-data"
           method="POST">
         <div class="body">
+            {{if .User.ID}}
+                <div>
+                    <button type="button" class="dropbtn toggle-menu-btn">&#x2716;</button>
+                    <div id="myDropdown" class="dropdown-content">
+                        <a href="/profiles/{{.User.ID}}/DeleteUser">удалить профиль</a>
+                    </div>
+                </div>
+            {{end}}
             <div class="left-element">
                 <label>
 
                     <div class="u-text-center img photo">
-                        {{if .User.ID}}
-                            {{range .ListPhotos}}
-                                <input type="hidden" value="{{.ID}}">
-                                {{if ne .LinkPhoto ""}}
-                                    <img class="photo img-bg" src="{{.LinkPhoto}}">
-                                {{else}}
-                                {{end}}
-                            {{end}}
-                        {{else}}
+{{/*                        {{if .User.ID}}*/}}
+{{/*                            {{range .ListPhotos}}*/}}
+{{/*                                <input type="hidden" value="{{.ID}}">*/}}
+{{/*                                {{if ne .LinkPhoto ""}}*/}}
+{{/*                                    <img class="photo img-bg" src="{{.LinkPhoto}}">*/}}
+{{/*                                {{else}}*/}}
+{{/*                                {{end}}*/}}
+{{/*                            {{end}}*/}}
+{{/*                        {{else}}*/}}
                             <img class="img photo img-bg">
-                        {{end}}
+{{/*                        {{end}}*/}}
 
                         <input type="file" name="photo" class="image-user"
                                accept="image/x-png,image/jpeg,image/jpg,image/png" multiple/>
@@ -45,6 +55,20 @@
                         <p>{{.PhotoError}}</p>
                     {{end}}
                 </label>
+
+                {{range .ListPhotos}}
+                    <label for="image" class="img photo" style="overflow: hidden; cursor: auto;">
+                        <img class="photo img-bg" style="height: 300px;" src="{{.LinkPhoto}}"
+                             alt="photo">
+                        <div class="dropdown-photo photos">
+                            <button type="button" class="dropbtn-photo toggle-menu-btn">&#8942;</button>
+                            <div id="myDropdown" class="dropdown-content">
+                                <a href="/profiles/{{.ID}}/edit/DeletePhoto">удалить</a>
+                            </div>
+                        </div>
+                    </label>
+                {{end}}
+
             </div>
             <div>
                 <label>
@@ -97,7 +121,7 @@
                     {{end}}
                 </label>
                 <br><br>
-                <input id="bt" type="submit" value="Добавить"/> {{if .User.ID}}или <a href="/addNewUser">создать
+                <input id="bt" type="submit" value="Добавить"/>{{if .User.ID}}или <a href="/addNewUser">создать
                     нового</a>{{end}}
             </div>
         </div>
@@ -109,12 +133,12 @@
                 <label for="image" class="img photo" style="overflow: hidden; cursor: auto;">
                     <img class="photo img-bg" style="height: 300px;" src="{{.LinkPhoto}}"
                          alt="photo">
-                    <div class="dropdown-photo photos">
-                        <button class="dropbtn-photo toggle-menu-btn">&#8942;</button>
-                        <div id="myDropdown" class="dropdown-content">
-                            <a href="/profiles/{{.ID}}/DeletePhoto">удалить</a>
-                        </div>
-                    </div>
+{{/*                    <div class="dropdown-photo photos">*/}}
+{{/*                        <button class="dropbtn-photo toggle-menu-btn">&#8942;</button>*/}}
+{{/*                        <div id="myDropdown" class="dropdown-content">*/}}
+{{/*                            <a href="/profiles/{{.ID}}/DeletePhoto">удалить</a>*/}}
+{{/*                        </div>*/}}
+{{/*                    </div>*/}}
                 </label>
             {{end}}
         </div>

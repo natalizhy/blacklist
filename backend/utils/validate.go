@@ -36,15 +36,13 @@ func ValidateCyr(fl validator.FieldLevel) bool {
 	return result.MatchString(fl.Field().String())
 }
 
-func ValidateUser(user models.User, photo models.Photo) (errors map[string]map[string]string, err error) {
+func ValidateUser(user models.User) (errors map[string]map[string]string, err error) {
 	err = validate.RegisterValidation("cyr", ValidateCyr)
-
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	err = validate.Struct(user)
-	err = validate.Struct(photo)
 
 	errors = make(map[string]map[string]string)
 

@@ -7,6 +7,7 @@ import (
 	"github.com/natalizhy/blacklist/backend/controllers"
 	"github.com/natalizhy/blacklist/backend/repositories"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -47,8 +48,8 @@ func adminRouter() http.Handler {
 	mux.Get("/profiles/{userID}/{mode}", controllers.GetUser) // редактирование
 	mux.Post("/profiles/{userID}/{mode}", controllers.AddUser)
 
-	mux.Get("/profiles/{userID}/DeleteUser", controllers.DeleteUser)        // удаление юзера
-	mux.Get("/profiles/{photoID}/DeletePhoto", controllers.DeleteUserPhoto) // удаление юзера
+	mux.Get("/profiles/{userID}/DeleteUser", controllers.DeleteUser)               // удаление юзера
+	mux.Get("/profiles/{photoID}/{mode}/DeletePhoto", controllers.DeleteUserPhoto) // удаление юзера
 
 	mux.Get("/addNewUser", controllers.GetNewUser) //
 	mux.Post("/addNewUser", controllers.AddUser)   // добавление нового профиля
@@ -63,6 +64,11 @@ func New(realm string, credentials map[string][]string) func(http.Handler) http.
 			if !ok {
 				unauthorized(w, realm)
 				return
+			}
+			if ok == true {
+				expire := time.Now().AddDate(0, 0, 1)
+				cookie := &http.Cookie{Name: "sample", Value: "sample", Path: "/", HttpOnly: false, Expires: expire, RawExpires: expire.Format(time.UnixDate)}
+				http.SetCookie(w, cookie)
 			}
 
 			validPasswords, userFound := credentials[username]

@@ -33,18 +33,27 @@
                     </div>
                 </div>
                 <label style="padding: 4px;">
-                    <input id="bt" style="background-color: #aab4bd" type="submit" value="Поиск" disabled/>
+                    {{if .Cookie}}
+                        <input id="bt" style="background-color: #2196F3" type="submit" value="Поиск"/>
+                    {{else}}
+                        <input id="bt" style="background-color: #aab4bd" type="submit" value="Поиск" disabled/>
+                    {{end}}
                 </label>
+
             </div>
 
             <br>
-            <div style="margin: 0px 41px;">
-                <div class="g-recaptcha"
-                     data-sitekey="6LcGMLYUAAAAAN3SZRA0GFLb0qTT0G-lnqRqMJjo" data-callback="recaptchaCallback"></div>
-                {{if .ReCAPTCHAerr }}
-                    <p style="font-size: 9px">{{.ReCAPTCHAerr}}</p>
-                {{end}}
-            </div>
+            {{if .Cookie}}
+                <div data-callback="recaptchaCallback"></div>{{else}}
+                <div style="margin: 0px 41px;">
+                    <div class="g-recaptcha"
+                         data-sitekey="6LcGMLYUAAAAAN3SZRA0GFLb0qTT0G-lnqRqMJjo"
+                         data-callback="recaptchaCallback"></div>
+                    {{if .ReCAPTCHAerr }}
+                        <p style="font-size: 9px">{{.ReCAPTCHAerr}}</p>
+                    {{end}}
+                </div>
+            {{end}}
 
         </div>
     </div>
@@ -65,7 +74,7 @@
             <div><a href="/profiles/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.Phone}}</div>
             <div class="dropdown">
                 <button class="dropbtn toggle-menu-btn">&#8942;</button>
-                <div id="myDropdown" class="dropdown-content" >
+                <div id="myDropdown" class="dropdown-content">
                     <a href="/profiles/{{.ID}}/DeleteUser">удалить</a>
                 </div>
             </div>

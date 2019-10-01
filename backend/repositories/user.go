@@ -6,7 +6,7 @@ import (
 )
 
 func GetUserById(userID int64) (user models.User, err error) {
-	result := DB.QueryRowx("SELECT `id`, `first_name`, `last_name`, `city_id`, `phone`, `info` "+
+	result := DB.QueryRowx("SELECT `id`, `first_name`, `last_name`, `city_id`, `phone`, `info`, `photoID` "+
 		"FROM `profiles` WHERE `id`=? AND `status`=?", userID, 1)
 
 	err = result.StructScan(&user)
@@ -104,8 +104,6 @@ func Search(user string) (users []models.User, err error) {
 		}
 		users = append(users, user)
 	}
-
-	fmt.Println(users, "users")
 
 	return
 }

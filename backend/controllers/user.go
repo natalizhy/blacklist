@@ -44,6 +44,7 @@ type SearchUser struct {
 	User         []models.User
 	ReCAPTCHAerr string
 	Mismatch     string
+	Cookie       *http.Cookie
 }
 
 var cities = map[int64]string{
@@ -76,8 +77,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	userTemp := UserTemp{User: user, Cities: cities, Photo: photo}
 
-	IsEdit := chi.URLParam(r, "mode") == "edit"
-	if IsEdit == true {
+	IsEdit := chi.URLParam(r, "mode")
+	if IsEdit == "edit" {
 		userTemp.IsEdit = true
 	} else {
 		userTemp.IsEdit = false
@@ -116,9 +117,12 @@ func GetNewUser(w http.ResponseWriter, r *http.Request) {
 
 func AddUser(w http.ResponseWriter, r *http.Request) {
 	userIDstr := chi.URLParam(r, "userID")
-	user := models.User{}
+	userIDedit, _ := strconv.ParseInt(userIDstr, 10, 64)
+	photos, _ := repositories.GetUserById(userIDedit)
+
+	user := models.User{ID: userIDedit, PhotoID: photos.PhotoID}
 	photo := models.Photo{}
-	userTemp := UserTemp{IsEdit: true, Cities: cities, PhotoError: "", Photo: photo}
+	userTemp := UserTemp{IsEdit: true, User: user, Cities: cities, PhotoError: "", Photo: photo}
 	var err error
 	var userID int64
 	var photoID int64
@@ -138,10 +142,9 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		userTemp.PhotoError = ""
 	}
 
-	userTemp.Error, err = utils.ValidateUser(user, photo)
+	userTemp.Error, err = utils.ValidateUser(user)
 	if err != nil {
-		w.Write([]byte("err"))
-		return
+		fmt.Println("не правильно введенные данные")
 	}
 
 	userTemp.User = user
@@ -152,10 +155,8 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userTemp.PhotoError == "" {
-
+	if userTemp.PhotoError == "" && len(userTemp.Error) == 0 {
 		if userIDstr != "" {
-
 			userID, err = strconv.ParseInt(userIDstr, 10, 64)
 			if err != nil {
 				w.Write([]byte("Неправельный ID"))
@@ -171,28 +172,25 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 
 		} else {
 			userID, err = repositories.AddUser(user)
-
 			if err != nil {
 				fmt.Println(err)
 				w.Write([]byte("Юзер не добавлен"))
 				return
 			}
-		}
 
-		photoID, err = RangeUserPhoto(w, photo, userID, usph)
-		if err != nil {
-			fmt.Println(err)
-			w.Write([]byte("Главное фото для юзера не выбрано"))
-			return
+			photoID, err = RangeUserPhoto(w, photo, userID, usph)
+			if err != nil {
+				fmt.Println(err)
+				w.Write([]byte("Главное фото для юзера не выбрано"))
+				return
+			}
+			user.PhotoID = photoID
 		}
-		user.PhotoID = photoID
 
 		photoIDup := repositories.UpdateUserPhoto(user, userID)
 		if photoIDup != nil {
 			fmt.Println(photoIDup)
 		}
-
-		fmt.Println(user.PhotoID, photoIDup, "done")
 
 		http.Redirect(w, r, "/profiles/"+strconv.FormatInt(userID, 10), http.StatusSeeOther)
 		return
@@ -202,11 +200,17 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func Search(w http.ResponseWriter, r *http.Request) {
+
+	cookie, err := r.Cookie("sample")
+	if err != nil {
+		fmt.Println(cookie, err)
+	}
+
 	userSearch := r.FormValue("search")
 	user, err := repositories.Search(userSearch)
-	tmplData := SearchUser{UserSearch: userSearch, User: user, ReCAPTCHAerr: "Докажите, что вы не робот", Mismatch: ""}
+	tmplData := SearchUser{UserSearch: userSearch, User: user, ReCAPTCHAerr: "Докажите, что вы не робот", Mismatch: "", Cookie: cookie}
 
-	if len(user) == 0 {
+	if len(user) == 0 && userSearch != ""{
 		tmplData.Mismatch = "Ничего по вашему запросу не найдено, возможно в строке поиска вы допустили ошибку"
 	}
 
@@ -216,42 +220,43 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userSearch != "" {
-		response := r.FormValue("g-recaptcha-response")
+	if cookie == nil {
+		if userSearch != "" {
 
-		if response == "" {
-			http.Redirect(w, r, "/", 301)
-			return
-		}
+			response := r.FormValue("g-recaptcha-response")
+			if response == "" {
+				http.Redirect(w, r, "/", 301)
+				return
+			}
 
-		remoteip := "176.38.148.28"
+			remoteip := "176.38.148.28"
 
-		secret := "6LcGMLYUAAAAAO7SPd_o6HjAqpHe_VH4CrX5kA3d"
-		postURL := "https://www.google.com/recaptcha/api/siteverify"
+			secret := "6LcGMLYUAAAAAO7SPd_o6HjAqpHe_VH4CrX5kA3d"
+			postURL := "https://www.google.com/recaptcha/api/siteverify"
+			postStr := url.Values{"secret": {secret}, "response": {response}, "remoteip": {remoteip}}
 
-		postStr := url.Values{"secret": {secret}, "response": {response}, "remoteip": {remoteip}}
+			responsePost, err := http.PostForm(postURL, postStr)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
 
-		responsePost, err := http.PostForm(postURL, postStr)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+			defer responsePost.Body.Close()
 
-		defer responsePost.Body.Close()
+			body, err := ioutil.ReadAll(responsePost.Body)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
 
-		body, err := ioutil.ReadAll(responsePost.Body)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+			var APIResp JSONAPIResponse
 
-		var APIResp JSONAPIResponse
-
-		err = json.Unmarshal(body, &APIResp)
-		if err != nil {
-			fmt.Println(err)
-			http.Redirect(w, r, "/", 301)
-			return
+			err = json.Unmarshal(body, &APIResp)
+			if err != nil {
+				fmt.Println(err)
+				http.Redirect(w, r, "/", 301)
+				return
+			}
 		}
 	}
 
@@ -275,6 +280,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func DeleteUserPhoto(w http.ResponseWriter, r *http.Request) {
 	photoIDstr := chi.URLParam(r, "photoID")
+	IsEdit := chi.URLParam(r, "mode")
 
 	photo := models.Photo{}
 	fmt.Println(photo.UserID)
@@ -288,7 +294,7 @@ func DeleteUserPhoto(w http.ResponseWriter, r *http.Request) {
 	err = repositories.DeleteUserPhoto(photo, photoID)
 
 	if err != nil {
-		http.Redirect(w, r, "/profiles/"+strconv.FormatInt(userID, 10), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/profiles/"+strconv.FormatInt(userID, 10)+"/"+IsEdit, http.StatusTemporaryRedirect)
 		return
 	}
 }
@@ -347,7 +353,7 @@ func AddUserPhoto(w http.ResponseWriter, r *http.Request, userTemp UserTemp) (li
 		}
 
 		imgDecode, format, err := image.Decode(file)
-		fmt.Println(file, format, err, "imgDecode")
+		fmt.Println("format img:", format)
 
 		if err != nil {
 			fmt.Println(err, "err")
@@ -404,7 +410,7 @@ func RangeUserPhoto(w http.ResponseWriter, photo models.Photo, userID int64, usp
 
 		photoID, err = repositories.AddUserPhoto(photo, userID)
 
-		fmt.Println(userID, photoID, "ID2")
+		fmt.Println("userid: ", userID, "photoid: ", photoID)
 		if err != nil {
 			fmt.Println(err)
 			w.Write([]byte("Фотографии не добавлены"))
