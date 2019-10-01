@@ -210,7 +210,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 	user, err := repositories.Search(userSearch)
 	tmplData := SearchUser{UserSearch: userSearch, User: user, ReCAPTCHAerr: "Докажите, что вы не робот", Mismatch: "", Cookie: cookie}
 
-	if len(user) == 0 && userSearch != ""{
+	if len(user) == 0 && userSearch != "" {
 		tmplData.Mismatch = "Ничего по вашему запросу не найдено, возможно в строке поиска вы допустили ошибку"
 	}
 

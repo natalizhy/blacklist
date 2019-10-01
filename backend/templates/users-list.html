@@ -66,17 +66,20 @@
 
 {{if ne .UserSearch ""}}
 <ul>
+    {{$c := .Cookie}}
     {{range .User}}
-
         <li class="user">
             <img class="image" src="{{.Link}}" alt="photo">
 
             <div><a href="/profiles/{{.ID}}">{{.FirstName}} {{.LastName}}</a><br>{{.Phone}}</div>
             <div class="dropdown">
-                <button class="dropbtn toggle-menu-btn">&#8942;</button>
-                <div id="myDropdown" class="dropdown-content">
-                    <a href="/profiles/{{.ID}}/DeleteUser">удалить</a>
-                </div>
+                {{if $c }}
+                    <button class="dropbtn toggle-menu-btn">&#8942;</button>
+                    <div id="myDropdown" class="dropdown-content">
+                        <a href="/profiles/{{.ID}}/DeleteUser">удалить</a>
+                    </div>
+                {{else}}
+                {{end}}
             </div>
         </li>
     {{end}} {{else}}
